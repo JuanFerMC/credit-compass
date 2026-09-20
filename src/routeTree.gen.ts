@@ -10,33 +10,79 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EvaluacionesRouteImport } from './routes/evaluaciones'
+import { Route as ReglasRouteImport } from './routes/reglas'
+import { Route as SolicitantesRouteImport } from './routes/solicitantes'
+import { Route as VariablesRouteImport } from './routes/variables'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvaluacionesRoute = EvaluacionesRouteImport.update({
+  id: '/evaluaciones',
+  path: '/evaluaciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReglasRoute = ReglasRouteImport.update({
+  id: '/reglas',
+  path: '/reglas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolicitantesRoute = SolicitantesRouteImport.update({
+  id: '/solicitantes',
+  path: '/solicitantes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VariablesRoute = VariablesRouteImport.update({
+  id: '/variables',
+  path: '/variables',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/evaluaciones': typeof EvaluacionesRoute
+  '/reglas': typeof ReglasRoute
+  '/solicitantes': typeof SolicitantesRoute
+  '/variables': typeof VariablesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/evaluaciones': typeof EvaluacionesRoute
+  '/reglas': typeof ReglasRoute
+  '/solicitantes': typeof SolicitantesRoute
+  '/variables': typeof VariablesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/evaluaciones': typeof EvaluacionesRoute
+  '/reglas': typeof ReglasRoute
+  '/solicitantes': typeof SolicitantesRoute
+  '/variables': typeof VariablesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/evaluaciones' | '/reglas' | '/solicitantes' | '/variables'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/evaluaciones' | '/reglas' | '/solicitantes' | '/variables'
+  id:
+    | '__root__'
+    | '/'
+    | '/evaluaciones'
+    | '/reglas'
+    | '/solicitantes'
+    | '/variables'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EvaluacionesRoute: typeof EvaluacionesRoute
+  ReglasRoute: typeof ReglasRoute
+  SolicitantesRoute: typeof SolicitantesRoute
+  VariablesRoute: typeof VariablesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +94,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evaluaciones': {
+      id: '/evaluaciones'
+      path: '/evaluaciones'
+      fullPath: '/evaluaciones'
+      preLoaderRoute: typeof EvaluacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reglas': {
+      id: '/reglas'
+      path: '/reglas'
+      fullPath: '/reglas'
+      preLoaderRoute: typeof ReglasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solicitantes': {
+      id: '/solicitantes'
+      path: '/solicitantes'
+      fullPath: '/solicitantes'
+      preLoaderRoute: typeof SolicitantesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/variables': {
+      id: '/variables'
+      path: '/variables'
+      fullPath: '/variables'
+      preLoaderRoute: typeof VariablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EvaluacionesRoute: EvaluacionesRoute,
+  ReglasRoute: ReglasRoute,
+  SolicitantesRoute: SolicitantesRoute,
+  VariablesRoute: VariablesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
