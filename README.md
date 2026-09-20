@@ -38,3 +38,15 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Docker
+
+Este proyecto puede desplegarse como contenedor Docker en cualquier
+plataforma que lo soporte. Ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para
+el detalle de cómo funciona, cómo construir la imagen y las variables de
+entorno disponibles.
+
+```sh
+docker build -t credit-compass-frontend --build-arg VITE_API_BASE_URL=https://tu-backend.example.com .
+docker run -p 3000:3000 credit-compass-frontend
+```
