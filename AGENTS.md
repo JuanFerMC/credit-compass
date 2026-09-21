@@ -124,4 +124,31 @@ Cambios:
   mezcla de instrucciones de negocio y boilerplate de Lovable en
   `README.md`, mencionada en el commit anterior.
 
+-- Claude (chat) -- Commit "Corrige parpadeo de tema y contraste del color warning" --
+Cambios:
+- `src/routes/__root.tsx`: se agregó un script inline en `<head>` que lee
+  `localStorage["veridica-theme"]` y aplica `data-theme` en `<html>` antes
+  de que React hidrate. Sin esto, un usuario que ya había elegido modo
+  oscuro o daltónico veía un parpadeo del tema claro en cada carga (el
+  tema solo se aplicaba en un `useEffect`, que corre después del primer
+  render). La lógica y los valores permitidos ("dark"/"colorblind") están
+  duplicados intencionalmente del mismo `theme-switcher.tsx` para que
+  ambos coincidan siempre.
+- `src/styles.css`: se instaló temporalmente `colorjs.io` (no quedó en
+  `package.json`, se desinstaló al terminar) para calcular el contraste
+  real (WCAG 2.1) de los tres modos de apariencia en vez de solo
+  "a ojo". Todos los pares texto/fondo relevantes (texto normal, texto
+  secundario, texto sobre botones, texto de cada chip de estado
+  info/positive/warning/critical) pasan el mínimo de 4.5:1 para texto
+  normal, excepto `--warning` sobre `--warning-soft`, que daba 4.34:1 en
+  claro y 3.43:1 en daltónico. Se oscureció `--warning` (L de 0.55→0.52 en
+  claro, 0.6→0.52 en daltónico) hasta 4.93:1 y 4.80:1 respectivamente, sin
+  tocar el resto de la paleta.
+- No se corrigió (queda para una revisión futura si se agregan más
+  variantes de chip): no se verificó el contraste de `bg-warning`/
+  `bg-positive`/etc. usados como fondo sólido con texto directamente
+  encima fuera de los chips "-soft" existentes, porque hoy no hay ningún
+  componente que los use así.
+
+
 

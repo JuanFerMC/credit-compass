@@ -111,6 +111,18 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <head>
+        {/*
+          Evita el "flash" de tema incorrecto: en SSR el <html> no tiene
+          data-theme todavía, así que sin esto el usuario vería un
+          parpadeo del tema claro antes de que el JS de React hidrate y
+          aplique el tema oscuro/daltónico guardado (ver theme-switcher.tsx,
+          que usa la misma clave y los mismos valores permitidos).
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("veridica-theme");if(t==="dark"||t==="colorblind"){document.documentElement.dataset.theme=t;}}catch(e){}})();`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
