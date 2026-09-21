@@ -26,23 +26,9 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <div
-      className="flex items-center rounded-lg border border-border bg-surface p-0.5"
-      role="group"
-      aria-label="Apariencia"
-    >
+    <div className="flex items-center rounded-lg border border-border bg-surface p-0.5" role="group" aria-label="Apariencia">
       {themes.map(({ value, label, Icon }) => (
-        <Button
-          key={value}
-          type="button"
-          size="icon"
-          variant={theme === value ? "primary" : "ghost"}
-          className="size-8 rounded-md"
-          aria-pressed={theme === value}
-          aria-label={`Usar modo ${label.toLowerCase()}`}
-          title={label}
-          onClick={() => updateTheme(value)}
-        >
+        <Button key={value} type="button" size="icon" variant={theme === value ? "primary" : "ghost"} className="size-8 rounded-md" aria-pressed={theme === value} aria-label={`Usar modo ${label.toLowerCase()}`} title={label} onClick={() => updateTheme(value)}>
           <Icon aria-hidden="true" className="size-4" />
         </Button>
       ))}
