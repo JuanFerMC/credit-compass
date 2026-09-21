@@ -25,7 +25,7 @@ export type ApplicantDetail = ApplicantInput & {
 
 export type ApiError = { errorCode?: string; message?: string; details?: string[]; traceId?: string };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(/\/$/, "");
 
 export class ApiRequestError extends Error {
   constructor(message: string, public status: number, public details: string[] = [], public traceId?: string) {

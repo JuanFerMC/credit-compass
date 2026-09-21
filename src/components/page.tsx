@@ -33,7 +33,7 @@ export function PendingBadge() {
   return <span className="inline-flex items-center gap-1 rounded-md bg-warning-soft px-2 py-1 text-xs font-semibold text-warning"><Info className="size-3" aria-hidden="true" /> API pendiente</span>;
 }
 
-export function Field({ label, htmlFor, error, hint, children }: { label: string; htmlFor: string; error?: string; hint?: string; children: ReactNode }) {
+export function Field({ label, htmlFor, error, hint, children }: { label: string; htmlFor: string; error?: string | undefined; hint?: string | undefined; children: ReactNode }) {
   return (
     <div>
       <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">{label}</label>

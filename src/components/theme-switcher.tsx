@@ -16,12 +16,12 @@ export function ThemeSwitcher() {
     const saved = window.localStorage.getItem("veridica-theme");
     const next = saved === "dark" || saved === "colorblind" ? saved : "light";
     setTheme(next);
-    document.documentElement.dataset.theme = next;
+    document.documentElement.dataset["theme"] = next;
   }, []);
 
   function updateTheme(next: Theme) {
     setTheme(next);
-    document.documentElement.dataset.theme = next;
+    document.documentElement.dataset["theme"] = next;
     window.localStorage.setItem("veridica-theme", next);
   }
 
