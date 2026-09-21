@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes } from "react";
@@ -8,8 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground shadow-sm hover:-translate-y-0.5 hover:bg-primary/90",
+        primary:
+          "bg-primary text-primary-foreground shadow-sm hover:-translate-y-0.5 hover:bg-primary/90",
         secondary: "border border-border bg-surface text-foreground hover:bg-accent-soft",
+        // Igual de neutro que "secondary" (borde + fondo transparente), pero sin
+        // superficie propia: pensado para usarse sobre fondos que ya tienen
+        // color (por ejemplo, dentro de un diálogo). Varios primitivos de
+        // shadcn (alert-dialog, carousel, pagination) esperan una variante
+        // "outline" por convención de la librería.
+        outline: "border border-border bg-transparent text-foreground hover:bg-accent-soft",
         ghost: "text-muted-foreground hover:bg-accent-soft hover:text-foreground",
         danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
       },
@@ -26,7 +34,17 @@ const buttonVariants = cva(
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants> & { asChild?: boolean };
 
-export function Button({ className, variant, size, asChild, ...props }: ButtonProps) {
-  const Comp = asChild ? Slot : "button";
-  return <Comp className={cn(buttonVariants({ variant, size }), className)} {...props} />;
-}
+// forwardRef porque varios primitivos de shadcn (Calendar, Sidebar, Carousel)
+// le pasan un ref directamente a <Button> — sin esto no compilan.
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
+    );
+  },
+);
+Button.displayName = "Button";
+
+export { Button, buttonVariants };
+export type { ButtonProps };

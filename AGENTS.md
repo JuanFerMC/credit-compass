@@ -43,3 +43,85 @@ Cambios:
   pendiente correr `docker build`/`docker run` en un entorno con Docker
   antes del primer despliegue real.
 
+-- Claude (chat) -- Commit "Corrige compilación, accesibilidad y sistema visual ausente" --
+Cambios:
+- **Compilación** (`tsc --noEmit` fallaba con 20+ errores; ahora pasa limpio):
+  - `src/components/ui/button.tsx`: no exportaba `buttonVariants`/`ButtonProps`
+    ni usaba `React.forwardRef`, rompiendo la compilación de `alert-dialog.tsx`,
+    `calendar.tsx`, `carousel.tsx`, `pagination.tsx` y `sidebar.tsx` (todos
+    esperan la API estándar de shadcn). Se restauró esa API manteniendo los
+    nombres de variante del proyecto (`primary/secondary/ghost/danger`) y se
+    agregó la variante `outline` que esos componentes ya daban por hecha.
+  - `src/components/ui/pagination.tsx`: `size` se especificaba dos veces en
+    `PaginationPrevious`/`PaginationNext` (prop literal + spread); se movió a
+    un valor por defecto en la desestructuración.
+  - `src/components/theme-switcher.tsx`, `src/lib/api.ts`,
+    `src/routes/solicitantes.tsx`: accesos a propiedades de index signature
+    (`dataset.theme`, `import.meta.env.VITE_API_BASE_URL`, `errors.campo`)
+    sin notación de corchetes, requerida por la config estricta de TS del
+    proyecto.
+  - `src/components/page.tsx`: el prop `error` de `Field` no aceptaba
+    `undefined` explícito bajo `exactOptionalPropertyTypes`.
+  - `npm run lint` tenía 167 errores de formato (prettier) en casi todo el
+    repo — nunca se había corrido `eslint --fix`. Se corrió una vez;
+    `npm run lint` ahora pasa con 0 errores (quedan 6 warnings preexistentes
+    de `react-refresh/only-export-components` en componentes shadcn sin
+    usar, no son bugs).
+- **Accesibilidad básica**:
+  - `src/routes/__root.tsx`: `<html lang="en">` con toda la app en español
+    → `lang="es"` (WCAG 3.1.1, afecta pronunciación de lectores de pantalla).
+  - `src/routes/solicitantes.tsx`: los 7 campos del formulario de "Nuevo
+    solicitante" no tenían `aria-invalid`/`aria-describedby` enlazados a su
+    mensaje de error (solo el campo de nombre tenía `aria-invalid`, y ninguno
+    tenía `aria-describedby`); se agregó a los 7.
+- **Sistema visual ausente (el hallazgo más importante de este bloque)**:
+  `src/styles.css` era el boilerplate genérico de `shadcn init`, sin ninguno
+  de los tokens que usa la app real. Se confirmó inspeccionando el CSS
+  compilado que clases como `bg-surface`, `bg-accent-soft`,
+  `bg-info-soft`/`text-info`, `bg-positive-soft`/`text-positive`,
+  `bg-warning-soft`/`text-warning`, `bg-destructive-soft`, `.glass`,
+  `.form-control`, `.data-table`, `.status-dot`, `font-display` no generaban
+  ni una línea de CSS — la app entera estaba, en la práctica, sin estilo
+  propio, y el modo oscuro/daltónico no existía (el switcher escribe
+  `data-theme` en `<html>`, pero el CSS solo tenía la convención `.dark` de
+  shadcn, que ningún componente usa). Se reescribió `src/styles.css`:
+  - Se agregaron los tokens semánticos que la app ya referenciaba
+    (`surface`, `accent-soft`, `info`/`positive`/`warning`/`critical` +
+    variantes `-soft`, `overlay`), registrados en `@theme inline`.
+  - Se agregaron variantes `[data-theme="dark"]` y `[data-theme="colorblind"]`
+    (selector correcto, no `.dark`). El modo daltónico usa la paleta segura
+    Okabe-Ito (azul en vez de verde para "positivo", vermellón/magenta para
+    riesgo alto) para no depender del eje rojo-verde; la UI ya refuerza el
+    estado con texto además de color (`variables.tsx`/`reglas.tsx`), este
+    cambio solo hace que el refuerzo de color funcione.
+  - Se registraron las tipografías que ya se cargaban en `__root.tsx`
+    (Inter, Space Grotesk, JetBrains Mono) pero nunca se aplicaban:
+    `--font-sans`, `--font-display`, `--font-mono`.
+  - Se agregaron las clases de componente que la app usa y no existían:
+    `.glass`, `.form-control` (con estado `aria-invalid`), `.data-table`,
+    `.status-dot`/`.status-active`/`.status-inactive`.
+  - Verificación: se recompiló (`tsc`, `eslint`, `NITRO_PRESET=node-server
+    npm run build`) y se inspeccionó `.output/public/assets/*.css` para
+    confirmar que las clases nuevas sí generan reglas CSS reales (por
+    ejemplo `.bg-surface{background-color:var(--surface)}`,
+    `.font-display{font-family:Space Grotesk,...}`, y los bloques
+    `[data-theme=dark]`/`[data-theme=colorblind]` con valores propios). Se
+    levantó el servidor construido y las 6 rutas (`/`, `/solicitantes`,
+    `/variables`, `/reglas`, `/evaluaciones`, `/informes`) responden `200`.
+    No se pudo hacer una verificación visual en navegador real (sin
+    entorno gráfico disponible aquí) — se recomienda una revisión visual
+    real y una auditoría de contraste (Lighthouse/axe) antes de dar por
+    cerrado el ítem de accesibilidad del roadmap.
+- **Bug adicional encontrado y corregido**: `src/routes/informes.tsx`
+  construía clases de Tailwind dinámicamente (`` `bg-${tone}-soft` ``,
+  `` `text-${tone}` ``). Tailwind analiza las clases de forma estática en
+  build time, así que ese patrón nunca generó las clases reales — los
+  bloques de "Distribución de cartera" y los "Hallazgos del período" se
+  renderizaban sin color de fondo/texto. Se reemplazó por un mapa estático
+  `toneClasses`/`toneClass()` con las clases completas escritas de forma
+  literal.
+- Pendiente para un commit futuro (documentado, no corregido aquí): la
+  mezcla de instrucciones de negocio y boilerplate de Lovable en
+  `README.md`, mencionada en el commit anterior.
+
+
