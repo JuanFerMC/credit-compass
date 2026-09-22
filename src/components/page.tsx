@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { Info, WifiOff } from "lucide-react";
 import { isApiConfigured } from "@/lib/api";
 
@@ -25,11 +25,15 @@ export function PageHeader({
   );
 }
 
-export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={`glass rounded-xl border border-border ${className}`}>{children}</section>
-  );
-}
+export const Panel = forwardRef<HTMLElement, { children: ReactNode; className?: string }>(
+  function Panel({ children, className = "" }, ref) {
+    return (
+      <section ref={ref} className={`glass rounded-xl border border-border ${className}`}>
+        {children}
+      </section>
+    );
+  },
+);
 
 export function DemoNotice() {
   if (isApiConfigured) return null;

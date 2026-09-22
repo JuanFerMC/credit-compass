@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, SlidersHorizontal } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { Info, Plus, SlidersHorizontal, ToggleLeft } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { DemoNotice, Field, PageHeader, Panel } from "@/components/page";
-import { api, isApiConfigured, riskVariableSchema, type RiskVariableInput } from "@/lib/api";
+import {
+  api,
+  ApiRequestError,
+  changeRiskVariableStatusSchema,
+  isApiConfigured,
+  riskVariableSchema,
+  type RiskVariableInput,
+} from "@/lib/api";
 import { riskVariables } from "@/lib/demo-data";
 
 export const Route = createFileRoute("/variables")({
@@ -34,6 +41,29 @@ function VariablesPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [statusForm, setStatusForm] = useState<{ idRiesgo: string; estado: "ACTIVA" | "INACTIVA" }>(
+    { idRiesgo: "", estado: "INACTIVA" },
+  );
+  const [statusErrors, setStatusErrors] = useState<Record<string, string>>({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusLoading, setStatusLoading] = useState(false);
+  const statusPanelRef = useRef<HTMLElement>(null);
+  const statusIdInputRef = useRef<HTMLInputElement>(null);
+
+  function prefillStatus(item: (typeof riskVariables)[number]) {
+    setStatusForm({
+      idRiesgo: String(item.id),
+      estado: item.active ? "INACTIVA" : "ACTIVA",
+    });
+    setStatusErrors({});
+    setStatusMessage(
+      "Se cargó la fila de ejemplo en el formulario. Confirma que el idRiesgo corresponda a un registro real antes de aplicar.",
+    );
+    statusPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    statusIdInputRef.current?.focus();
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     const parsed = riskVariableSchema.safeParse(form);
@@ -57,6 +87,41 @@ function VariablesPage() {
       setLoading(false);
     }
   }
+
+  async function submitStatus(event: FormEvent) {
+    event.preventDefault();
+    setStatusMessage("");
+    const parsed = changeRiskVariableStatusSchema.safeParse(statusForm);
+    if (!parsed.success) {
+      setStatusErrors(
+        Object.fromEntries(
+          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
+        ),
+      );
+      return;
+    }
+    setStatusErrors({});
+    setStatusLoading(true);
+    try {
+      if (isApiConfigured) {
+        const result = await api.changeRiskVariableStatus(parsed.data);
+        setStatusMessage(
+          `idRiesgo ${result.idRiesgo}: ${result.estadoAnterior} → ${result.estadoNuevo}.`,
+        );
+      } else {
+        setStatusMessage("Cambio validado. Conecta la API para aplicarlo.");
+      }
+    } catch (error) {
+      setStatusMessage(
+        error instanceof ApiRequestError
+          ? `${error.message}${error.traceId ? ` · Referencia ${error.traceId}` : ""}`
+          : "No fue posible cambiar el estado.",
+      );
+    } finally {
+      setStatusLoading(false);
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -65,10 +130,19 @@ function VariablesPage() {
         description="Define los factores que pueden participar en las nuevas evaluaciones de crédito."
       />
       <DemoNotice />
+      <div className="flex items-start gap-3 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm">
+        <Info className="mt-0.5 size-4 shrink-0 text-info" aria-hidden="true" />
+        <p>
+          El backend todavía no expone un endpoint para <strong>listar</strong> variables de riesgo
+          (solo crear y cambiar estado). La tabla de abajo es un ejemplo de referencia, no datos en
+          vivo — para cambiar el estado de una variable real, usa su idRiesgo en el panel de la
+          derecha.
+        </p>
+      </div>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <Panel className="overflow-hidden">
           <div className="border-b border-border px-5 py-4">
-            <h2 className="font-display text-lg font-bold">Variables configuradas</h2>
+            <h2 className="font-display text-lg font-bold">Variables configuradas (ejemplo)</h2>
             <p className="text-sm text-muted-foreground">
               El estado se apoya con texto para no depender únicamente del color.
             </p>
@@ -81,6 +155,7 @@ function VariablesPage() {
                   <th>Tipo</th>
                   <th>Descripción</th>
                   <th>Estado</th>
+                  <th className="sr-only">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,6 +173,17 @@ function VariablesPage() {
                       >
                         {item.active ? "Activa" : "Inactiva"}
                       </span>
+                    </td>
+                    <td className="text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => prefillStatus(item)}
+                      >
+                        <ToggleLeft className="size-3.5" />
+                        {item.active ? "Desactivar" : "Activar"}
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -165,6 +251,63 @@ function VariablesPage() {
           </form>
         </Panel>
       </div>
+      <Panel className="p-5" ref={statusPanelRef}>
+        <div className="mb-5 flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-primary">
+            <ToggleLeft className="size-5" />
+          </span>
+          <div>
+            <h2 className="font-display font-bold">Cambiar estado (HU4)</h2>
+            <p className="text-xs text-muted-foreground">
+              Activa o desactiva una variable existente por su idRiesgo. Al desactivarla, sus reglas
+              de scoring dejan de considerarse en nuevos cálculos.
+            </p>
+          </div>
+        </div>
+        {statusMessage && (
+          <p className="mb-4 rounded-lg bg-info-soft p-3 text-sm text-info" role="status">
+            {statusMessage}
+          </p>
+        )}
+        <form
+          onSubmit={submitStatus}
+          className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem_auto]"
+        >
+          <Field label="idRiesgo" htmlFor="status-id" error={statusErrors["idRiesgo"]}>
+            <input
+              id="status-id"
+              ref={statusIdInputRef}
+              className="form-control"
+              inputMode="numeric"
+              value={statusForm.idRiesgo}
+              onChange={(e) =>
+                setStatusForm({ ...statusForm, idRiesgo: e.target.value.replace(/\D/g, "") })
+              }
+              aria-invalid={Boolean(statusErrors["idRiesgo"])}
+              aria-describedby={statusErrors["idRiesgo"] ? "status-id-error" : undefined}
+            />
+          </Field>
+          <Field label="Nuevo estado" htmlFor="status-estado">
+            <select
+              id="status-estado"
+              className="form-control"
+              value={statusForm.estado}
+              onChange={(e) =>
+                setStatusForm({
+                  ...statusForm,
+                  estado: e.target.value as typeof statusForm.estado,
+                })
+              }
+            >
+              <option value="ACTIVA">Activa</option>
+              <option value="INACTIVA">Inactiva</option>
+            </select>
+          </Field>
+          <Button type="submit" variant="secondary" className="self-end" disabled={statusLoading}>
+            {statusLoading ? "Aplicando…" : "Aplicar"}
+          </Button>
+        </form>
+      </Panel>
     </>
   );
 }

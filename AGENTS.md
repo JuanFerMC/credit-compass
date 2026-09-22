@@ -150,5 +150,83 @@ Cambios:
   encima fuera de los chips "-soft" existentes, porque hoy no hay ningún
   componente que los use así.
 
+-- Claude (chat) -- Commit "Implementa integración API para HU4-HU6 (PATCH) y agrega acciones de fila" --
+Contexto: al revisar el diff real contra lo último comiteado (`77543ad`),
+encontré que el árbol de trabajo ya tenía —sin comitear— una reescritura
+completa de `src/lib/api.ts` (catálogo de variables, esquemas zod y
+métodos para HU3-HU6) y de `variables.tsx`/`reglas.tsx` (paneles de
+"Cambiar estado" y "Editar regla" ya conectados a esos métodos). Ese
+trabajo se había hecho en un turno anterior de esta misma sesión que se
+cortó antes de llegar al commit, así que nunca quedó en el historial de
+git — `77543ad` todavía tiene las versiones simples (sin HU4-HU6). Este
+commit es, entonces, el que realmente persiste esa integración por
+primera vez, junto con lo nuevo de este turno.
+
+Se revisó el backend (`motor-scoring-crediticio`, rama `main`, commit
+`993d9d7`) endpoint por endpoint contra ese `api.ts` para confirmar que
+las rutas, nombres de campo y enums coinciden exactamente (`POST`/`GET`
+`/solicitantes`, `POST`/`PATCH` `/variables-riesgo`, `POST`/`PATCH`
+`/reglas-scoring`). Nota aparte: existe una rama
+`feature/HU07-calcular-score-crediticio` con el cálculo de score
+(relevante para `evaluaciones.tsx`/`informes.tsx`) que **no está
+mergeada a `main`**; no se integró nada contra ella porque no es estable
+todavía — queda para cuando el backend la fusione.
+
+Sobre esa base ya wireada, lo que faltaba (confirmado con el usuario) era
+UX: cada fila de las tablas de ejemplo no tenía forma de precargar esos
+formularios — había que escribir el `idRiesgo`/`idRegla` a mano.
+
+Cambios:
+- `src/lib/api.ts`: catálogo `RISK_VARIABLE_CATALOG` con tipo por
+  variable, `operadoresPermitidos()`, esquemas zod
+  `changeRiskVariableStatusSchema`/`createScoringRuleSchema`/
+  `editScoringRuleSchema`, y los métodos `changeRiskVariableStatus`,
+  `createScoringRule`, `editScoringRule` en `api`. También se corrigió
+  `request()` para no reventar si una respuesta 200/201 llega con body
+  vacío (`response.json()` directo fallaba en ese caso).
+- `src/routes/variables.tsx`: nuevo panel "Cambiar estado (HU4)" con su
+  propio formulario (`idRiesgo` + `estado`), validado con
+  `changeRiskVariableStatusSchema` y conectado a
+  `api.changeRiskVariableStatus`.
+- `src/routes/reglas.tsx`: nuevo panel "Editar regla existente" (HU6)
+  además del de creación (HU5, que ahora sí llama a
+  `api.createScoringRule` en vez de solo validar localmente), validado
+  con `editScoringRuleSchema`/`createScoringRuleSchema` y conectado a
+  `api.editScoringRule`/`api.createScoringRule`.
+- `src/components/page.tsx`: `Panel` ahora es `forwardRef` (necesario para
+  poder hacer scroll hacia el panel de edición/cambio de estado al usar
+  una acción de fila).
+- `src/routes/reglas.tsx`: cada fila de "Reglas configuradas (ejemplo)"
+  tiene un botón "Editar" que precarga el formulario de edición
+  (`idRegla`, `operador`, `valorCondicion`, `puntaje`), hace scroll hasta
+  el panel y mueve el foco al primer campo (accesibilidad: usuarios de
+  teclado/lector de pantalla no pierden el contexto). Como los valores de
+  la fila de ejemplo están formateados para lectura ("$4.000.000", "30%",
+  "3 años") y no como el `valorCondicion` crudo que espera la API, se
+  agregó `demoValueToCondicion()` — una traducción best-effort (se queda
+  con los dígitos, o con la palabra tal cual si es categórica) — y un
+  mensaje visible aclarando que hay que confirmar el ID real antes de
+  guardar.
+- `src/routes/variables.tsx`: mismo patrón — cada fila de "Variables
+  configuradas (ejemplo)" tiene un botón "Activar"/"Desactivar" (según el
+  estado actual de esa fila de ejemplo) que precarga el panel "Cambiar
+  estado (HU4)" con `idRiesgo` y el estado opuesto.
+- `roadmap.md`: se marcan como hechos "Implementar solicitantes y
+  variables con validación e integración API" e "Implementar reglas,
+  evaluaciones e informes preparados para futuros endpoints" — evaluaciones
+  e informes siguen en modo demo a propósito, a la espera de que HU07 se
+  mergee a `main`.
+- Bug de tipos encontrado de paso: `statusForm` se inicializaba con
+  `estado: "INACTIVA" as const`, lo que TypeScript infería como el tipo
+  literal `"INACTIVA"` (no la unión `"ACTIVA" | "INACTIVA"`) — el único
+
+  motivo por el que compilaba antes es que el único lugar que lo asignaba
+  usaba `as typeof statusForm.estado`, ocultando el problema. Se tipó el
+  `useState` explícitamente como `"ACTIVA" | "INACTIVA"`.
+- Verificación: `tsc --noEmit` y `eslint` limpios, build con
+  `NITRO_PRESET=node-server` exitoso, servidor levantado y `/variables` y
+  `/reglas` responden `200`.
+
+
 
 
