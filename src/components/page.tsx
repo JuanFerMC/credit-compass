@@ -14,13 +14,17 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+    <header className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
         <p className="font-mono text-[11px] uppercase text-muted-foreground">{eyebrow}</p>
         <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && (
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
+          {action}
+        </div>
+      )}
     </header>
   );
 }
@@ -69,7 +73,7 @@ export function Field({
   label: string;
   htmlFor: string;
   error?: string | undefined;
-  hint?: string;
+  hint?: string | undefined;
   children: ReactNode;
 }) {
   return (

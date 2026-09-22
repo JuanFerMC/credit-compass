@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ClipboardCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Panel } from "@/components/page";
+import { DemoNotice, PageHeader, Panel } from "@/components/page";
 import { StatusBadge } from "@/components/status-badge";
 import { evaluations } from "@/lib/demo-data";
 
@@ -66,6 +66,7 @@ function Dashboard() {
           </Button>
         }
       />
+      <DemoNotice />
       <section
         className="grid grid-cols-2 gap-3 lg:grid-cols-4"
         aria-label="Indicadores principales"

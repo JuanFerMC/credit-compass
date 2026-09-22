@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, Download, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Panel, PendingBadge } from "@/components/page";
+import { DemoNotice, PageHeader, Panel, PendingBadge } from "@/components/page";
 
 export const Route = createFileRoute("/informes")({
   head: () => ({
@@ -30,20 +30,6 @@ const periods = [
   { month: "Ago", score: 701 },
   { month: "Sep", score: 712 },
 ];
-// Tailwind analiza las clases estáticamente en build time, así que no puede
-// detectar clases construidas dinámicamente como `bg-${tone}-soft`; ese
-// patrón generaba clases inexistentes y, por lo tanto, elementos sin
-// estilo. Este mapa fijo resuelve tono -> clases reales que sí compilan.
-const toneClasses: Record<string, { soft: string; text: string }> = {
-  positive: { soft: "bg-positive-soft", text: "text-positive" },
-  info: { soft: "bg-info-soft", text: "text-info" },
-  warning: { soft: "bg-warning-soft", text: "text-warning" },
-  destructive: { soft: "bg-destructive-soft", text: "text-destructive" },
-  critical: { soft: "bg-critical-soft", text: "text-critical" },
-};
-function toneClass(tone: keyof typeof toneClasses) {
-  return toneClasses[tone] ?? toneClasses["info"]!;
-}
 function ReportsPage() {
   return (
     <>
@@ -61,6 +47,7 @@ function ReportsPage() {
           </div>
         }
       />
+      <DemoNotice />
       <section className="grid gap-4 sm:grid-cols-3">
         <ReportMetric title="Evaluaciones" value="1.284" detail="+6,2%" positive />
         <ReportMetric title="Score promedio" value="712" detail="+18 pts" positive />
@@ -119,17 +106,15 @@ function ReportsPage() {
       <Panel className="p-5">
         <h2 className="font-display text-lg font-bold">Distribución de cartera</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-5">
-          {(
-            [
-              ["Muy bajo", "35%", "positive"],
-              ["Bajo", "28%", "info"],
-              ["Medio", "20%", "warning"],
-              ["Alto", "12%", "destructive"],
-              ["Muy alto", "5%", "critical"],
-            ] as const
-          ).map(([label, value, tone]) => (
-            <div key={label} className={`rounded-lg p-4 ${toneClass(tone).soft}`}>
-              <p className={`font-display text-2xl font-bold ${toneClass(tone).text}`}>{value}</p>
+          {[
+            ["Muy bajo", "35%", "positive"],
+            ["Bajo", "28%", "info"],
+            ["Medio", "20%", "warning"],
+            ["Alto", "12%", "destructive"],
+            ["Muy alto", "5%", "critical"],
+          ].map(([label, value, tone]) => (
+            <div key={label} className={`rounded-lg bg-${tone}-soft p-4`}>
+              <p className={`font-display text-2xl font-bold text-${tone}`}>{value}</p>
               <p className="mt-1 text-sm font-semibold">{label}</p>
             </div>
           ))}
@@ -168,12 +153,12 @@ function Finding({
   icon: React.ReactNode;
   title: string;
   text: string;
-  tone: keyof typeof toneClasses;
+  tone: string;
 }) {
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
       <span
-        className={`grid size-9 place-items-center rounded-lg [&>svg]:size-4 ${toneClass(tone).soft} ${toneClass(tone).text}`}
+        className={`grid size-9 place-items-center rounded-lg bg-${tone}-soft text-${tone} [&>svg]:size-4`}
       >
         {icon}
       </span>

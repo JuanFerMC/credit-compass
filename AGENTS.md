@@ -227,6 +227,89 @@ Cambios:
   `NITRO_PRESET=node-server` exitoso, servidor levantado y `/variables` y
   `/reglas` responden `200`.
 
+-- Claude (chat) -- Merge "Resuelve conflicto con los commits directos a main (Lovable + usuario)" --
+Contexto: al ir a hacer push del commit anterior, `git push` fue
+rechazado — 4 commits nuevos habían llegado a `main` mientras se
+trabajaba (3 de `gpt-engineer-app[bot]`, el bot de Lovable, y 1 del
+usuario directamente: "API integration and solve issues"). Ambos lados
+habían tocado casi los mismos archivos, incluyendo un ataque
+independiente al mismo problema (el sistema visual ausente en
+`styles.css`) y un intento de agregar HU5 (crear regla) sin HU4/HU6
+(cambiar estado / editar regla). El usuario pidió explícitamente "revisa
+ambos lados y arma un merge razonado, sin perder AGENTS.md".
+
+Decisiones del merge, archivo por archivo:
+- **`AGENTS.md`**: el otro lado lo había reseteado al boilerplate de
+  Lovable (sin el registro de commits). Se restauró el historial completo
+  de este archivo — es el motivo por el que este merge existe.
+- **`src/lib/api.ts`**: se tomó como base la versión de este lado (tiene
+  HU4/HU5/HU6 completos: `changeRiskVariableStatus`, `createScoringRule`,
+  `editScoringRule`, más el catálogo `RISK_VARIABLE_CATALOG` para derivar
+  operadores permitidos por tipo de variable). Se sumaron del otro lado
+  los tipos `Evaluation`/`EvaluationDetail`, `scoreRequestSchema` y el
+  método `calculateScore` — groundwork para HU07 que `evaluaciones.tsx`
+  ya usa activamente. Se dejó un comentario advirtiendo que ese endpoint
+  vive en una rama del backend (`feature/HU07-calcular-score-crediticio`)
+  que **no está mergeada a `main`**, así que devolverá 404 contra un
+  backend real hasta que se fusione. Se descartaron `scoringRuleSchema`/
+  `ScoringRuleInput`/`RiskVariable`/`ScoringRule` (versiones del otro lado
+  sin HU4/HU6, sin usuarios después de este merge).
+- **`src/routes/reglas.tsx` / `src/routes/variables.tsx`**: se tomó la
+  versión de este lado completa (formularios de creación + edición/cambio
+  de estado, tabla de ejemplo, botones de fila, accesibilidad) — la del
+  otro lado (`reglas.tsx`) solo tenía creación, sin edición en absoluto,
+  que era justamente lo que el usuario había pedido agregar.
+- **`src/components/page.tsx`**: se combinó — `Panel` como `forwardRef`
+  de este lado (necesario para las acciones de fila) + la mejora
+  responsive del wrapper de `action` en `PageHeader` del otro lado.
+- **`roadmap.md`**: se tomaron los 6 ítems marcados (ambos lados
+  coincidían en que ya estaban hechos, salvo dos casillas que este lado
+  aún no había marcado por descuido).
+- **Todo lo demás** (`styles.css`, `button.tsx`, `pagination.tsx`,
+  `theme-switcher.tsx`, `app-shell.tsx`, `demo-data.ts`, `error-page.ts`,
+  `status-badge.tsx`, `index.tsx`, `evaluaciones.tsx`, `informes.tsx`,
+  `Dockerfile`, `compose.yaml`, `.env*`, `README.md`) se auto-mergeó
+  limpio (sin marcadores de conflicto) tomando la versión del otro lado
+  completa, porque este lado no la había tocado desde el último push. Se
+  revisó cada uno igual — no se confió en el auto-merge a ciegas — y se
+  encontraron y corrigieron 4 problemas reales del otro lado:
+  1. **Bug crítico de Docker**: el `Dockerfile` del otro lado no fijaba
+     `NITRO_PRESET=node-server`. Se reprodujo: sin ese override, Nitro
+     construye contra Cloudflare Workers (el target por defecto, según
+     el comentario de `vite.config.ts`) y el contenedor "compila" pero
+     `node .output/server/index.mjs` no levanta ningún servidor (el
+     bundle es un export `fetch` para el runtime de Workers). Se
+     mantuvo la estructura del `Dockerfile` del otro lado (más liviana:
+     runtime en `node:22-alpine` en vez de `oven/bun`) y se agregó el
+     `ENV NITRO_PRESET=node-server` que faltaba, más `USER node` para no
+     correr como root.
+  2. **`src/routes/__root.tsx`**: el script inline que evita el parpadeo
+     de tema (aplicar `data-theme` desde `localStorage` antes de
+     hidratar) se había perdido en la reescritura del otro lado. Se
+     restauró — el `lang="es"` sí sobrevivió.
+  3. **`src/routes/solicitantes.tsx`**: dos bugs. (a) Bloque duplicado:
+     el panel "Solicitantes recientes" se renderizaba dos veces seguidas
+     (una versión vieja sin condición + la versión nueva con el aviso
+     "el backend todavía no publica..."), se eliminó el duplicado viejo.
+     (b) Los 7 campos del formulario de "Nuevo solicitante" habían
+     perdido `aria-describedby` (accesibilidad agregada en un commit
+     anterior de esta sesión); se volvió a agregar.
+  4. **`DEPLOYMENT.md`** (movido a la raíz por el otro lado, sustituyendo
+     a `docs/DEPLOYMENT.md`): no documentaba los endpoints PATCH de
+     HU4/HU6 ni la razón de `NITRO_PRESET=node-server`; se agregó ambas
+     cosas. `README.md` había perdido el enlace a este documento; se
+     restauró como sección "## Docker".
+- Nota: `src/routes/variables.tsx` del otro lado tenía el mismo bug de
+  panel duplicado que (3a) en `solicitantes.tsx`, pero no aplicó porque
+  se descartó esa versión completa a favor de la de este lado.
+- Verificación: `tsc --noEmit` y `eslint` limpios (0 errores), build con
+  `NITRO_PRESET=node-server` exitoso, servidor levantado y las 6 rutas
+  (`/`, `/solicitantes`, `/variables`, `/reglas`, `/evaluaciones`,
+  `/informes`) responden `200`. Se reprodujo el bug de Docker del punto 1
+  construyendo sin el override antes de aplicar el fix, para confirmarlo
+  en vez de asumirlo.
+
+
 
 
 

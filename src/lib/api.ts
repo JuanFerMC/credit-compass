@@ -123,6 +123,34 @@ export type ScoringRuleDetail = {
   puntaje: number;
 };
 
+// HU07: cálculo de score. El backend expone esto en la rama
+// feature/HU07-calcular-score-crediticio, que todavía NO está mergeada a
+// main (ver AGENTS.md) — hasta que se fusione, calculateScore() devolverá
+// 404 contra un backend real. evaluaciones.tsx ya lo usa a modo de
+// preparación para cuando esté disponible.
+export const scoreRequestSchema = z.object({
+  numeroDocumento: z
+    .string()
+    .trim()
+    .regex(/^\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
+});
+export type ScoreRequestInput = z.infer<typeof scoreRequestSchema>;
+
+export type EvaluationDetail = {
+  idRegla: number;
+  operadorAplicado: string;
+  valorCondicionAplicado: string;
+  condicionCumplida: boolean;
+  puntajeObtenido: number;
+};
+export type Evaluation = {
+  idEvaluacion: number;
+  idSolicitante: number;
+  fechaEvaluacion: string;
+  scoreTotal: number;
+  detalles: EvaluationDetail[];
+};
+
 export type ApiError = {
   errorCode?: string;
   message?: string;
@@ -152,10 +180,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       "La API no está configurada. La información de demostración sigue disponible.",
       0,
     );
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
+  const headers = new Headers(init?.headers);
+  if (init?.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+  } catch {
+    throw new ApiRequestError("No fue posible conectar con el backend.", 0);
+  }
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ApiError;
     throw new ApiRequestError(
@@ -207,6 +239,9 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  // HU7 (backend aún no mergeado a main — ver el comentario en scoreRequestSchema)
+  calculateScore: (input: ScoreRequestInput) =>
+    request<Evaluation>("/api/v1/evaluaciones", { method: "POST", body: JSON.stringify(input) }),
 };
 
 export const isApiConfigured = Boolean(API_BASE_URL);

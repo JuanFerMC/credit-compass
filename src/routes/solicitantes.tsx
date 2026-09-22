@@ -106,7 +106,12 @@ function ApplicantsPage() {
     try {
       if (isApiConfigured) setResult(await api.findApplicant(document));
       else {
-        const found = applicants.find((item) => item.document === document) ?? applicants[0];
+        const found = applicants.find((item) => item.document === document);
+        if (!found) {
+          setResult(null);
+          setNotice("No encontramos un solicitante con ese documento.");
+          return;
+        }
         setResult({
           idSolicitante: 101,
           fechaRegistro: "2026-09-18T09:30:00",
@@ -201,33 +206,35 @@ function ApplicantsPage() {
         <div className="border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-bold">Solicitantes recientes</h2>
           <p className="text-sm text-muted-foreground">
-            Datos demostrativos para anticipar la consulta general pendiente.
+            El backend todavía no publica un endpoint para listar solicitantes.
           </p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Documento</th>
-                <th>Ingresos</th>
-                <th>Historial</th>
-                <th>Moras</th>
-              </tr>
-            </thead>
-            <tbody>
-              {applicants.map((item) => (
-                <tr key={item.document}>
-                  <td className="font-semibold">{item.name}</td>
-                  <td className="font-mono">{item.document}</td>
-                  <td>{currency(item.income)}</td>
-                  <td>{item.history}</td>
-                  <td>{item.arrears}</td>
+        {!isApiConfigured && (
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Documento</th>
+                  <th>Ingresos</th>
+                  <th>Historial</th>
+                  <th>Moras</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {applicants.map((item) => (
+                  <tr key={item.document}>
+                    <td className="font-semibold">{item.name}</td>
+                    <td className="font-mono">{item.document}</td>
+                    <td>{currency(item.income)}</td>
+                    <td>{item.history}</td>
+                    <td>{item.arrears}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Panel>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-overlay p-4">
