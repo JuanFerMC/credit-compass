@@ -10,102 +10,146 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EvaluacionesRouteImport } from './routes/evaluaciones'
-import { Route as InformesRouteImport } from './routes/informes'
-import { Route as ReglasRouteImport } from './routes/reglas'
-import { Route as SolicitantesRouteImport } from './routes/solicitantes'
-import { Route as VariablesRouteImport } from './routes/variables'
+import { Route as CrearCuentaRouteImport } from './routes/crear-cuenta'
+import { Route as IniciarSesionRouteImport } from './routes/iniciar-sesion'
+import { Route as PanelRouteRouteImport } from './routes/panel/route'
+import { Route as PanelIndexRouteImport } from './routes/panel/index'
+import { Route as PanelEvaluacionesRouteImport } from './routes/panel/evaluaciones'
+import { Route as PanelInformesRouteImport } from './routes/panel/informes'
+import { Route as PanelReglasRouteImport } from './routes/panel/reglas'
+import { Route as PanelSolicitantesRouteImport } from './routes/panel/solicitantes'
+import { Route as PanelVariablesRouteImport } from './routes/panel/variables'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EvaluacionesRoute = EvaluacionesRouteImport.update({
+const CrearCuentaRoute = CrearCuentaRouteImport.update({
+  id: '/crear-cuenta',
+  path: '/crear-cuenta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IniciarSesionRoute = IniciarSesionRouteImport.update({
+  id: '/iniciar-sesion',
+  path: '/iniciar-sesion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelRouteRoute = PanelRouteRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelIndexRoute = PanelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PanelRouteRoute,
+} as any)
+const PanelEvaluacionesRoute = PanelEvaluacionesRouteImport.update({
   id: '/evaluaciones',
   path: '/evaluaciones',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PanelRouteRoute,
 } as any)
-const InformesRoute = InformesRouteImport.update({
+const PanelInformesRoute = PanelInformesRouteImport.update({
   id: '/informes',
   path: '/informes',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PanelRouteRoute,
 } as any)
-const ReglasRoute = ReglasRouteImport.update({
+const PanelReglasRoute = PanelReglasRouteImport.update({
   id: '/reglas',
   path: '/reglas',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PanelRouteRoute,
 } as any)
-const SolicitantesRoute = SolicitantesRouteImport.update({
+const PanelSolicitantesRoute = PanelSolicitantesRouteImport.update({
   id: '/solicitantes',
   path: '/solicitantes',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PanelRouteRoute,
 } as any)
-const VariablesRoute = VariablesRouteImport.update({
+const PanelVariablesRoute = PanelVariablesRouteImport.update({
   id: '/variables',
   path: '/variables',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PanelRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/evaluaciones': typeof EvaluacionesRoute
-  '/informes': typeof InformesRoute
-  '/reglas': typeof ReglasRoute
-  '/solicitantes': typeof SolicitantesRoute
-  '/variables': typeof VariablesRoute
+  '/panel': typeof PanelRouteRouteWithChildren
+  '/crear-cuenta': typeof CrearCuentaRoute
+  '/iniciar-sesion': typeof IniciarSesionRoute
+  '/panel/evaluaciones': typeof PanelEvaluacionesRoute
+  '/panel/informes': typeof PanelInformesRoute
+  '/panel/reglas': typeof PanelReglasRoute
+  '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/variables': typeof PanelVariablesRoute
+  '/panel/': typeof PanelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/evaluaciones': typeof EvaluacionesRoute
-  '/informes': typeof InformesRoute
-  '/reglas': typeof ReglasRoute
-  '/solicitantes': typeof SolicitantesRoute
-  '/variables': typeof VariablesRoute
+  '/crear-cuenta': typeof CrearCuentaRoute
+  '/iniciar-sesion': typeof IniciarSesionRoute
+  '/panel/evaluaciones': typeof PanelEvaluacionesRoute
+  '/panel/informes': typeof PanelInformesRoute
+  '/panel/reglas': typeof PanelReglasRoute
+  '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/variables': typeof PanelVariablesRoute
+  '/panel': typeof PanelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/evaluaciones': typeof EvaluacionesRoute
-  '/informes': typeof InformesRoute
-  '/reglas': typeof ReglasRoute
-  '/solicitantes': typeof SolicitantesRoute
-  '/variables': typeof VariablesRoute
+  '/panel': typeof PanelRouteRouteWithChildren
+  '/crear-cuenta': typeof CrearCuentaRoute
+  '/iniciar-sesion': typeof IniciarSesionRoute
+  '/panel/evaluaciones': typeof PanelEvaluacionesRoute
+  '/panel/informes': typeof PanelInformesRoute
+  '/panel/reglas': typeof PanelReglasRoute
+  '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/variables': typeof PanelVariablesRoute
+  '/panel/': typeof PanelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/evaluaciones'
-    | '/informes'
-    | '/reglas'
-    | '/solicitantes'
-    | '/variables'
+    | '/panel'
+    | '/crear-cuenta'
+    | '/iniciar-sesion'
+    | '/panel/evaluaciones'
+    | '/panel/informes'
+    | '/panel/reglas'
+    | '/panel/solicitantes'
+    | '/panel/variables'
+    | '/panel/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/evaluaciones'
-    | '/informes'
-    | '/reglas'
-    | '/solicitantes'
-    | '/variables'
+    | '/crear-cuenta'
+    | '/iniciar-sesion'
+    | '/panel/evaluaciones'
+    | '/panel/informes'
+    | '/panel/reglas'
+    | '/panel/solicitantes'
+    | '/panel/variables'
+    | '/panel'
   id:
     | '__root__'
     | '/'
-    | '/evaluaciones'
-    | '/informes'
-    | '/reglas'
-    | '/solicitantes'
-    | '/variables'
+    | '/panel'
+    | '/crear-cuenta'
+    | '/iniciar-sesion'
+    | '/panel/evaluaciones'
+    | '/panel/informes'
+    | '/panel/reglas'
+    | '/panel/solicitantes'
+    | '/panel/variables'
+    | '/panel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EvaluacionesRoute: typeof EvaluacionesRoute
-  InformesRoute: typeof InformesRoute
-  ReglasRoute: typeof ReglasRoute
-  SolicitantesRoute: typeof SolicitantesRoute
-  VariablesRoute: typeof VariablesRoute
+  PanelRouteRoute: typeof PanelRouteRouteWithChildren
+  CrearCuentaRoute: typeof CrearCuentaRoute
+  IniciarSesionRoute: typeof IniciarSesionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,51 +161,99 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/evaluaciones': {
-      id: '/evaluaciones'
+    '/crear-cuenta': {
+      id: '/crear-cuenta'
+      path: '/crear-cuenta'
+      fullPath: '/crear-cuenta'
+      preLoaderRoute: typeof CrearCuentaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iniciar-sesion': {
+      id: '/iniciar-sesion'
+      path: '/iniciar-sesion'
+      fullPath: '/iniciar-sesion'
+      preLoaderRoute: typeof IniciarSesionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel': {
+      id: '/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof PanelRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/': {
+      id: '/panel/'
+      path: '/'
+      fullPath: '/panel/'
+      preLoaderRoute: typeof PanelIndexRouteImport
+      parentRoute: typeof PanelRouteRoute
+    }
+    '/panel/evaluaciones': {
+      id: '/panel/evaluaciones'
       path: '/evaluaciones'
-      fullPath: '/evaluaciones'
-      preLoaderRoute: typeof EvaluacionesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/panel/evaluaciones'
+      preLoaderRoute: typeof PanelEvaluacionesRouteImport
+      parentRoute: typeof PanelRouteRoute
     }
-    '/informes': {
-      id: '/informes'
+    '/panel/informes': {
+      id: '/panel/informes'
       path: '/informes'
-      fullPath: '/informes'
-      preLoaderRoute: typeof InformesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/panel/informes'
+      preLoaderRoute: typeof PanelInformesRouteImport
+      parentRoute: typeof PanelRouteRoute
     }
-    '/reglas': {
-      id: '/reglas'
+    '/panel/reglas': {
+      id: '/panel/reglas'
       path: '/reglas'
-      fullPath: '/reglas'
-      preLoaderRoute: typeof ReglasRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/panel/reglas'
+      preLoaderRoute: typeof PanelReglasRouteImport
+      parentRoute: typeof PanelRouteRoute
     }
-    '/solicitantes': {
-      id: '/solicitantes'
+    '/panel/solicitantes': {
+      id: '/panel/solicitantes'
       path: '/solicitantes'
-      fullPath: '/solicitantes'
-      preLoaderRoute: typeof SolicitantesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/panel/solicitantes'
+      preLoaderRoute: typeof PanelSolicitantesRouteImport
+      parentRoute: typeof PanelRouteRoute
     }
-    '/variables': {
-      id: '/variables'
+    '/panel/variables': {
+      id: '/panel/variables'
       path: '/variables'
-      fullPath: '/variables'
-      preLoaderRoute: typeof VariablesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/panel/variables'
+      preLoaderRoute: typeof PanelVariablesRouteImport
+      parentRoute: typeof PanelRouteRoute
     }
   }
 }
 
+interface PanelRouteRouteChildren {
+  PanelEvaluacionesRoute: typeof PanelEvaluacionesRoute
+  PanelInformesRoute: typeof PanelInformesRoute
+  PanelReglasRoute: typeof PanelReglasRoute
+  PanelSolicitantesRoute: typeof PanelSolicitantesRoute
+  PanelVariablesRoute: typeof PanelVariablesRoute
+  PanelIndexRoute: typeof PanelIndexRoute
+}
+
+const PanelRouteRouteChildren: PanelRouteRouteChildren = {
+  PanelEvaluacionesRoute: PanelEvaluacionesRoute,
+  PanelInformesRoute: PanelInformesRoute,
+  PanelReglasRoute: PanelReglasRoute,
+  PanelSolicitantesRoute: PanelSolicitantesRoute,
+  PanelVariablesRoute: PanelVariablesRoute,
+  PanelIndexRoute: PanelIndexRoute,
+}
+
+const PanelRouteRouteWithChildren = PanelRouteRoute._addFileChildren(
+  PanelRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EvaluacionesRoute: EvaluacionesRoute,
-  InformesRoute: InformesRoute,
-  ReglasRoute: ReglasRoute,
-  SolicitantesRoute: SolicitantesRoute,
-  VariablesRoute: VariablesRoute,
+  PanelRouteRoute: PanelRouteRouteWithChildren,
+  CrearCuentaRoute: CrearCuentaRoute,
+  IniciarSesionRoute: IniciarSesionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

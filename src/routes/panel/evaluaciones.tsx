@@ -7,7 +7,7 @@ import { PageHeader, Panel } from "@/components/page";
 import { StatusBadge } from "@/components/status-badge";
 import { api, ApiRequestError, isApiConfigured, scoreRequestSchema, type Evaluation } from "@/lib/api";
 
-export const Route = createFileRoute("/evaluaciones")({ head: () => ({ meta: [
+export const Route = createFileRoute("/panel/evaluaciones")({ head: () => ({ meta: [
   { title: "Evaluaciones — Veridica" }, { name: "description", content: "Cálculo explicable e historial de scoring crediticio." }, { property: "og:title", content: "Evaluaciones — Veridica" }, { property: "og:description", content: "Cálculo explicable e historial de scoring crediticio." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
 ] }), component: EvaluationsPage });
 

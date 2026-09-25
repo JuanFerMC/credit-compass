@@ -15,12 +15,12 @@ import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const navItems = [
-  { to: "/", label: "Panel general", icon: Gauge },
-  { to: "/solicitantes", label: "Solicitantes", icon: Users },
-  { to: "/variables", label: "Variables de riesgo", icon: Settings2 },
-  { to: "/reglas", label: "Reglas de scoring", icon: Scale },
-  { to: "/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
-  { to: "/informes", label: "Informes", icon: BarChart3 },
+  { to: "/panel", label: "Panel general", icon: Gauge },
+  { to: "/panel/solicitantes", label: "Solicitantes", icon: Users },
+  { to: "/panel/variables", label: "Variables de riesgo", icon: Settings2 },
+  { to: "/panel/reglas", label: "Reglas de scoring", icon: Scale },
+  { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
+  { to: "/panel/informes", label: "Informes", icon: BarChart3 },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -28,7 +28,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav aria-label="Navegación principal" className="mt-2 flex-1 space-y-1 px-3">
       {navItems.map(({ to, label, icon: Icon }) => {
-        const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+        const active = to === "/panel" ? pathname === "/panel" : pathname.startsWith(to);
         return (
           <Link
             key={to}
@@ -53,7 +53,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <Link
-      to="/"
+      to="/panel"
       className="flex items-center gap-2.5 px-5 py-5"
       aria-label="Veridica, ir al panel general"
     >

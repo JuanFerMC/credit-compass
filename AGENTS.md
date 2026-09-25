@@ -309,7 +309,55 @@ Decisiones del merge, archivo por archivo:
   construyendo sin el override antes de aplicar el fix, para confirmarlo
   en vez de asumirlo.
 
+-- Claude (chat) -- PR "Landing pública + autenticación demo (bloque 1)" --
+Contexto: a partir de este bloque, por límite de tokens del plan, se
+trabaja en ramas y se abre un PR en vez de comitear directo a `main` con
+aprobación por chat (pedido explícito del usuario). Esta rama:
+`feature/landing-y-auth-demo`.
 
+Objetivo del bloque: una landing pública antes del panel (quiénes somos,
+qué hacemos) con botones de "Crear cuenta"/"Iniciar sesión", dejando todo
+preparado para enchufar autenticación real cuando el backend la tenga
+(hoy `motor-scoring-crediticio` no tiene ningún endpoint de auth).
 
-
-
+Cambios:
+- **Reestructuración de rutas**: todo lo que antes vivía en la raíz
+  (`/`, `/solicitantes`, `/variables`, `/reglas`, `/evaluaciones`,
+  `/informes`) se movió a `src/routes/panel/` con prefijo `/panel/*`
+  (`/panel`, `/panel/solicitantes`, etc.), usando una layout route
+  `src/routes/panel/route.tsx` que envuelve esas páginas con el
+  `AppShell` (antes el `AppShell` envolvía TODO desde `__root.tsx`, lo
+  que hacía imposible tener una página pública sin la barra lateral del
+  panel). `__root.tsx` ahora solo provee el `QueryClientProvider` y
+  `<Outlet />`, sin chrome propio.
+- `src/components/app-shell.tsx`: rutas de navegación y el link de marca
+  actualizados a `/panel/*`.
+- `src/components/public-shell.tsx` (nuevo): header y footer públicos
+  compartidos por la landing y las páginas de autenticación (fuera del
+  `AppShell` del panel).
+- `src/routes/index.tsx` (nuevo — la landing pública, la vieja pasó a
+  `panel/index.tsx`): hero, sección "Qué hacemos" (una tarjeta por
+  módulo: solicitantes, variables, reglas, evaluaciones/informes),
+  sección "Quiénes somos", y una franja de CTA final. Todas las rutas al
+  panel usan `/panel` (se puede explorar sin cuenta, es demo).
+- `src/lib/auth.ts` (nuevo): `login`/`signup`/`logout`/`getSession`,
+  100% local (`localStorage`, sin red) porque el backend no tiene
+  endpoints de autenticación todavía. Misma forma que `api.ts`
+  (schemas zod + funciones async + una constante `isAuthApiConfigured`)
+  a propósito, para que conectar el backend real el día que exista sea
+  cambiar el cuerpo de esas 2 funciones por una llamada a `request()`,
+  sin tocar las páginas.
+- `src/routes/iniciar-sesion.tsx` y `src/routes/crear-cuenta.tsx`
+  (nuevos): formularios con la misma validación/accesibilidad
+  (`aria-invalid`/`aria-describedby`) que el resto de la app, que llaman
+  a `auth.login`/`auth.signup` y redirigen a `/panel`.
+- Verificación: `tsc --noEmit` y `eslint` limpios, build con
+  `NITRO_PRESET=node-server` exitoso (la regeneración del árbol de rutas
+  de TanStack Router se disparó sola al construir), y las 9 rutas
+  (`/`, `/iniciar-sesion`, `/crear-cuenta`, `/panel` + las 5 hijas)
+  responden `200`.
+- Pendiente para un bloque futuro: no hay ningún "route guard" — entrar
+  a `/panel/*` sin haber iniciado sesión funciona igual (a propósito,
+  para no trabar la demo), así que hoy "iniciar sesión" no restringe
+  nada; solo cambia qué se guarda en `localStorage`. Cuando haya
+  autenticación real, decidir si `/panel/*` debe exigir sesión.
