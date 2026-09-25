@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Download, FileBarChart } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { DemoNotice, PageHeader, Panel, PendingBadge } from "@/components/page";
 
-export const Route = createFileRoute("/informes")({
+export const Route = createFileRoute("/panel/informes")({
   head: () => ({
     meta: [
       { title: "Informes de riesgo — Veridica" },

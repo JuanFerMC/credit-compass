@@ -14,7 +14,7 @@ import {
 } from "@/lib/api";
 import { applicants } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/solicitantes")({
+export const Route = createFileRoute("/panel/solicitantes")({
   head: () => ({
     meta: [
       { title: "Solicitantes — Veridica" },

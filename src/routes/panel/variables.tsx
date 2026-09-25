@@ -13,7 +13,7 @@ import {
 } from "@/lib/api";
 import { riskVariables } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/variables")({
+export const Route = createFileRoute("/panel/variables")({
   head: () => ({
     meta: [
       { title: "Variables de riesgo — Veridica" },

@@ -1,198 +1,144 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ClipboardCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  ClipboardCheck,
+  Scale,
+  Settings2,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+import { PublicHeader, PublicFooter } from "@/components/public-shell";
+import { Panel } from "@/components/page";
 import { Button } from "@/components/ui/button";
-import { DemoNotice, PageHeader, Panel } from "@/components/page";
-import { StatusBadge } from "@/components/status-badge";
-import { evaluations } from "@/lib/demo-data";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Panel general — Veridica" },
-      {
-        name: "description",
-        content: "Resumen de cartera y actividad del motor de scoring crediticio.",
-      },
-      { property: "og:title", content: "Panel general — Veridica" },
-      {
-        property: "og:description",
-        content: "Resumen de cartera y actividad del motor de scoring crediticio.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Dashboard,
+  component: LandingPage,
 });
 
-const metrics = [
+const features = [
   {
-    label: "Cartera evaluada",
-    value: "1.284",
-    note: "3,2% este mes",
     icon: Users,
-    tone: "positive",
+    title: "Solicitantes",
+    text: "Registra solicitantes y consulta su información por número de documento.",
   },
-  { label: "Score promedio", value: "712", note: "+18 puntos", icon: TrendingUp, tone: "positive" },
   {
-    label: "Evaluaciones hoy",
-    value: "47",
-    note: "12 pendientes",
-    icon: ClipboardCheck,
-    tone: "accent",
+    icon: Settings2,
+    title: "Variables de riesgo",
+    text: "Define qué variables entran al modelo (ingresos, moras, historial…) y actívalas o desactívalas.",
   },
-  { label: "Riesgo alto", value: "17%", note: "−2,1 puntos", icon: TrendingDown, tone: "warning" },
+  {
+    icon: Scale,
+    title: "Reglas de scoring",
+    text: "Configura condiciones y puntajes por variable, y edítalas cuando el criterio de negocio cambie.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Evaluaciones e informes",
+    text: "Calcula el score de un solicitante cruzando sus datos contra las reglas activas, con el detalle de cada regla aplicada.",
+  },
 ] as const;
-const distribution = [
-  { label: "Muy bajo", count: 412, percent: 32, className: "bg-positive", marker: "A" },
-  { label: "Bajo", count: 388, percent: 30, className: "bg-info", marker: "B" },
-  { label: "Medio", count: 296, percent: 23, className: "bg-warning", marker: "C" },
-  { label: "Alto y muy alto", count: 188, percent: 15, className: "bg-destructive", marker: "D" },
-];
 
-function Dashboard() {
+function LandingPage() {
   return (
-    <>
-      <PageHeader
-        eyebrow="Panel general"
-        title="Resumen de cartera"
-        description="Una vista clara de las evaluaciones, el riesgo y el comportamiento reciente del portafolio."
-        action={
-          <Button asChild>
-            <Link to="/evaluaciones">
-              Nueva evaluación
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+    <div className="flex min-h-screen flex-col">
+      <PublicHeader
+        actions={
+          <>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/iniciar-sesion">Iniciar sesión</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/crear-cuenta">Crear cuenta</Link>
+            </Button>
+          </>
         }
       />
-      <DemoNotice />
-      <section
-        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
-        aria-label="Indicadores principales"
-      >
-        {metrics.map(({ label, value, note, icon: Icon, tone }, index) => (
-          <Panel key={label} className="animate-rise p-4 sm:p-5">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase text-muted-foreground">{label}</p>
-                <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">{value}</p>
-                <p className={`mt-1 text-xs font-semibold text-${tone}`}>{note}</p>
-              </div>
-              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-primary">
-                <Icon className="size-4" />
-              </span>
-            </div>
-          </Panel>
-        ))}
-      </section>
-      <section className="grid gap-6 lg:grid-cols-5">
-        <Panel className="p-5 lg:col-span-2">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
-            <div>
-              <h2 className="font-display text-lg font-bold">Distribución por nivel</h2>
-              <p className="text-sm text-muted-foreground">Cartera actual por categoría.</p>
-            </div>
-            <span className="font-mono text-xs text-muted-foreground">SEP 2026</span>
-          </div>
-          <div className="mt-6 space-y-5">
-            {distribution.map((item) => (
-              <div key={item.label}>
-                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center text-sm">
-                  <span className="flex min-w-0 items-center gap-2 font-semibold">
-                    <span
-                      className={`grid size-6 shrink-0 place-items-center rounded text-[10px] text-primary-foreground ${item.className}`}
-                    >
-                      {item.marker}
-                    </span>
-                    <span className="truncate">{item.label}</span>
-                  </span>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {item.count} · {item.percent}%
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={`h-full ${item.className}`}
-                    style={{ width: `${item.percent}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-        <Panel className="overflow-hidden lg:col-span-3">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border px-5 py-4">
-            <div>
-              <h2 className="font-display text-lg font-bold">Evaluaciones recientes</h2>
-              <p className="text-sm text-muted-foreground">Últimos cálculos del motor.</p>
-            </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/evaluaciones">Ver todas</Link>
+
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
+          <p className="font-mono text-[11px] uppercase text-muted-foreground">
+            Scoring crediticio
+          </p>
+          <h1 className="mt-3 max-w-2xl font-display text-3xl font-bold sm:text-5xl">
+            Decisiones de crédito más rápidas, consistentes y trazables
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+            Veridica centraliza solicitantes, variables de riesgo y reglas de scoring en un solo
+            panel, para que cada evaluación de crédito quede documentada y sea fácil de auditar.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild>
+              <Link to="/crear-cuenta">
+                Crear cuenta gratis
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link to="/panel">Ver panel de demostración</Link>
             </Button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Solicitante</th>
-                  <th>Score</th>
-                  <th>Nivel</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {evaluations.slice(0, 4).map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="font-mono text-[10px] text-muted-foreground">{item.document}</p>
-                    </td>
-                    <td className="font-mono font-bold">{item.score}</td>
-                    <td>
-                      <StatusBadge tone={item.tone}>{item.level}</StatusBadge>
-                    </td>
-                    <td className="whitespace-nowrap text-muted-foreground">{item.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        </section>
+
+        {/* Qué hacemos */}
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <h2 className="font-display text-2xl font-bold">Qué hacemos</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Un módulo por cada paso del proceso de evaluación crediticia.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {features.map(({ icon: Icon, title, text }) => (
+              <Panel key={title} className="p-5">
+                <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-primary">
+                  <Icon className="size-5" />
+                </span>
+                <h3 className="mt-4 font-display font-bold">{title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{text}</p>
+              </Panel>
+            ))}
           </div>
-        </Panel>
-      </section>
-      <Panel className="overflow-hidden">
-        <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_minmax(18rem,32rem)]">
-          <div className="p-5 sm:p-6">
-            <p className="font-mono text-[10px] uppercase text-primary">
-              Interpretación del modelo
-            </p>
-            <h2 className="mt-2 font-display text-xl font-bold">
-              El riesgo se explica, no solo se puntúa.
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Cada evaluación conserva las reglas consideradas, condiciones cumplidas y puntos
-              obtenidos. Esto permite auditar el resultado sin recalcular el pasado cuando cambia el
-              modelo.
-            </p>
-          </div>
-          <div className="border-t border-border bg-surface p-5 md:border-l md:border-t-0">
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
-              <div className="score-orbit">
-                <span>712</span>
-              </div>
-              <div>
-                <p className="font-semibold">Score promedio</p>
-                <p className="mt-1 text-sm text-muted-foreground">Riesgo bajo en el período</p>
-                <div className="mt-3 flex gap-1">
-                  <span className="h-2 flex-[3] rounded bg-positive" />
-                  <span className="h-2 flex-[2] rounded bg-info" />
-                  <span className="h-2 flex-1 rounded bg-warning" />
-                </div>
-              </div>
+        </section>
+
+        {/* Quiénes somos */}
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <Panel className="grid gap-6 p-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-8">
+            <span className="grid size-12 place-items-center rounded-lg bg-accent-soft text-primary">
+              <ShieldCheck className="size-6" />
+            </span>
+            <div>
+              <h2 className="font-display text-2xl font-bold">Quiénes somos</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
+                Veridica es un proyecto de scoring crediticio pensado para equipos de riesgo que
+                necesitan un criterio de evaluación claro y auditable: cada puntaje se puede
+                explicar regla por regla, en vez de depender de una decisión manual sin registro.
+                Este panel está en desarrollo activo — hoy mismo puedes explorarlo en modo
+                demostración, sin necesidad de crear una cuenta.
+              </p>
             </div>
-          </div>
-        </div>
-      </Panel>
-    </>
+          </Panel>
+        </section>
+
+        {/* CTA final */}
+        <section className="mx-auto max-w-6xl px-6 py-12">
+          <Panel className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+              <h2 className="font-display text-xl font-bold">Explora el panel ahora</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Sin registro: puedes recorrer todos los módulos en modo demostración.
+              </p>
+            </div>
+            <Button asChild>
+              <Link to="/panel">
+                Ir al panel
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </Panel>
+        </section>
+      </main>
+
+      <PublicFooter />
+    </div>
   );
 }

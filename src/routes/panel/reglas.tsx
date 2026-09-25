@@ -30,7 +30,7 @@ function demoValueToCondicion(value: string): string {
   return digits || value;
 }
 
-export const Route = createFileRoute("/reglas")({
+export const Route = createFileRoute("/panel/reglas")({
   head: () => ({
     meta: [
       { title: "Reglas de scoring — Veridica" },

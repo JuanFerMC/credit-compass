@@ -12,7 +12,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppShell } from "../components/app-shell";
 
 function NotFoundComponent() {
   return (
@@ -133,8 +132,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AppShell><Outlet /></AppShell>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes.
+          El AppShell (nav del panel) vive en routes/panel/route.tsx — este nivel
+          es compartido por la landing pública y el panel, así que no lleva chrome. */}
+      <Outlet />
     </QueryClientProvider>
   );
 }
