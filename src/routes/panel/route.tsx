@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
+import { AppShell } from "@/components/layout/app-shell";
 
 // Layout route: envuelve /panel y todo lo que cuelga de /panel/* con el
 // AppShell (barra lateral, header, selector de tema). La landing pública

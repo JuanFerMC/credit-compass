@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 
 const navItems = [
   { to: "/panel", label: "Panel general", icon: Gauge },

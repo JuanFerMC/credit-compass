@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Info, Plus, SlidersHorizontal, ToggleLeft } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { DemoNotice, Field, PageHeader, Panel } from "@/components/page";
+import { DemoNotice, Field, PageHeader, Panel } from "@/components/shared/page";
 import {
   api,
   ApiRequestError,
@@ -11,7 +11,7 @@ import {
   riskVariableSchema,
   type RiskVariableInput,
 } from "@/lib/api";
-import { riskVariables } from "@/lib/demo-data";
+import { riskVariables } from "@/data/demo-data";
 
 export const Route = createFileRoute("/panel/variables")({
   head: () => ({

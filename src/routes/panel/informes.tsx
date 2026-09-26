@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, Download, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DemoNotice, PageHeader, Panel, PendingBadge } from "@/components/page";
+import { DemoNotice, PageHeader, Panel, PendingBadge } from "@/components/shared/page";
 
 export const Route = createFileRoute("/panel/informes")({
   head: () => ({
