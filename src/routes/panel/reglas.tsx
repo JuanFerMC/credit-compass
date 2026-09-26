@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Info, Pencil, Plus, Scale } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
-import { DemoNotice, Field, PageHeader, Panel } from "@/components/page";
+import { DemoNotice, Field, PageHeader, Panel } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import {
   api,
@@ -17,7 +17,7 @@ import {
   type OperatorSymbol,
   type RiskVariableName,
 } from "@/lib/api";
-import { scoringRules } from "@/lib/demo-data";
+import { scoringRules } from "@/data/demo-data";
 
 // La fila de la tabla "de ejemplo" trae valores con formato de lectura
 // ("$4.000.000", "30%", "3 años"), no el valorCondicion crudo que espera la

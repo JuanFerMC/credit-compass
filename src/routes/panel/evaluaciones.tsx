@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Calculator, Check, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Panel } from "@/components/page";
-import { StatusBadge } from "@/components/status-badge";
+import { PageHeader, Panel } from "@/components/shared/page";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { api, ApiRequestError, isApiConfigured, scoreRequestSchema, type Evaluation } from "@/lib/api";
 
 export const Route = createFileRoute("/panel/evaluaciones")({ head: () => ({ meta: [

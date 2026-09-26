@@ -8,8 +8,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { PublicHeader, PublicFooter } from "@/components/public-shell";
-import { Panel } from "@/components/page";
+import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
+import { Panel } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({

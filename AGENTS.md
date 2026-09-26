@@ -361,3 +361,34 @@ Cambios:
   para no trabar la demo), así que hoy "iniciar sesión" no restringe
   nada; solo cambia qué se guarda en `localStorage`. Cuando haya
   autenticación real, decidir si `/panel/*` debe exigir sesión.
+
+-- Claude (chat) -- PR "Reorganiza carpetas: components/layout, components/shared, data (bloque 2)" --
+Primer bloque de la reestructuración de carpetas pedida (más orden para
+trabajar). Rama: `chore/reorganizar-carpetas`.
+
+Cambios:
+- `src/components/app-shell.tsx`, `public-shell.tsx` → `src/components/layout/`
+  (chrome de página: barra lateral del panel, header/footer públicos).
+- `src/components/status-badge.tsx`, `theme-switcher.tsx`, `page.tsx` →
+  `src/components/shared/` (bloques reutilizables entre rutas: Panel,
+  Field, PageHeader, DemoNotice, etc.).
+- `src/components/ui/` sin cambios (primitivos shadcn).
+- `src/lib/demo-data.ts` → `src/data/demo-data.ts` (no es una utilidad de
+  `lib/`, es el set de datos de ejemplo que alimenta las tablas demo).
+- `src/lib/` se queda con `api.ts`, `auth.ts`, `utils.ts` y los archivos de
+  manejo de errores (`error-capture.ts`, `error-page.ts`,
+  `lovable-error-reporting.ts`) — estos últimos, junto con `src/server.ts`,
+  `src/start.ts`, `src/router.tsx` y `src/styles.css`, se dejaron
+  intocados a propósito: son infraestructura de TanStack Start/Lovable
+  con rutas de import fijas (`vite.config.ts` referencia `server.ts`
+  literalmente, `__root.tsx` importa `styles.css?url`), moverlos es
+  riesgo alto para poco beneficio.
+- Actualizados los ~14 imports afectados en `routes/panel/*`,
+  `routes/index.tsx`, `routes/iniciar-sesion.tsx`, `routes/crear-cuenta.tsx`
+  y `components/layout/app-shell.tsx`.
+- Verificación: `tsc --noEmit` y `eslint` limpios, build con
+  `NITRO_PRESET=node-server` exitoso, las 9 rutas responden `200`.
+
+Pendiente para el siguiente bloque de reorganización: revisar si
+`src/lib/api.ts`/`auth.ts` deberían moverse a un `src/api/` propio — no
+se hizo en este bloque para mantenerlo pequeño.

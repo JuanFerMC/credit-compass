@@ -3,7 +3,7 @@ import { Search, UserPlus, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { DemoNotice, Field, PageHeader, Panel } from "@/components/page";
+import { DemoNotice, Field, PageHeader, Panel } from "@/components/shared/page";
 import {
   api,
   applicantSchema,
@@ -12,7 +12,7 @@ import {
   ApiRequestError,
   isApiConfigured,
 } from "@/lib/api";
-import { applicants } from "@/lib/demo-data";
+import { applicants } from "@/data/demo-data";
 
 export const Route = createFileRoute("/panel/solicitantes")({
   head: () => ({

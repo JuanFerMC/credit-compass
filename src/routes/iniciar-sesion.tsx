@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { PublicHeader, PublicFooter } from "@/components/public-shell";
-import { Panel, Field } from "@/components/page";
+import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
+import { Panel, Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, loginSchema } from "@/lib/auth";
 
