@@ -514,3 +514,35 @@ Con esto quedan resueltos todos los duplicados literales que se
 encontraron en este pase de limpieza (formularios + status-dot). El
 código muerto de `components/ui/` y las dependencias huérfanas ya se
 habían eliminado en un bloque anterior.
+
+-- Claude (chat) -- PR "Extrae AuthShell para resolver duplicado entre login y registro" --
+El usuario reportó que las pruebas de duplicación de código (jscpd o
+similar) marcaron `src/routes/iniciar-sesion.tsx` y
+`src/routes/crear-cuenta.tsx` con 3.3% de duplicación, por encima del
+3% óptimo configurado. Rama: `chore/dedup-auth-shell`.
+
+Ambos archivos compartían, prácticamente palabra por palabra, todo el
+"marco" de la página: el `PublicHeader`/`PublicFooter`, el `Panel`
+centrado, el bloque ícono+título+aviso de modo demostrativo, y el
+párrafo de pie con el enlace para alternar entre login/registro — solo
+cambiaban el ícono, el texto puntual, los campos del formulario y el
+handler de envío.
+
+Cambio: `src/components/shared/auth-shell.tsx` (nuevo) — `<AuthShell>`
+recibe ese contenido variable como props (`icon`, `title`, `switchPath`,
+`switchLabel`, `footerText`, `footerLinkText`) y el formulario como
+`children`. `iniciar-sesion.tsx` y `crear-cuenta.tsx` quedaron reducidos
+a solo lo que de verdad les es propio: su estado, su `submit()`, y sus
+campos de formulario dentro de `<AuthShell>`.
+
+No se fusionaron en un solo archivo de ruta porque TanStack Router
+(file-based routing) necesita un archivo por URL (`/iniciar-sesion` y
+`/crear-cuenta` son rutas distintas) — pero el código realmente
+duplicado ahora vive en un solo lugar (`auth-shell.tsx`), que es lo que
+pedía el reporte de duplicación.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, `/iniciar-sesion` y `/crear-cuenta`
+responden `200`. No se corrió aquí la misma herramienta de duplicación
+que usa el usuario (no está en este entorno) — recomendado volver a
+correrla tras el merge para confirmar que baja del 3%.

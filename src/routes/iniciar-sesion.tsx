@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
-import { Panel, Field } from "@/components/shared/page";
+import { AuthShell } from "@/components/shared/auth-shell";
+import { Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, loginSchema } from "@/api/auth";
 import { fieldA11y, zodErrors } from "@/lib/forms";
@@ -37,62 +37,41 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <PublicHeader
-        actions={
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/crear-cuenta">Crear cuenta</Link>
-          </Button>
-        }
-      />
-      <main className="flex flex-1 items-center justify-center px-6 py-12">
-        <Panel className="w-full max-w-sm p-6">
-          <div className="mb-5">
-            <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-primary">
-              <LogIn className="size-5" />
-            </span>
-            <h1 className="mt-3 font-display text-xl font-bold">Iniciar sesión</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Modo demostrativo: no hay backend de autenticación todavía, esto solo simula tu sesión
-              en este navegador.
-            </p>
-          </div>
-          <form onSubmit={submit} className="space-y-4" noValidate>
-            <Field label="Correo" htmlFor="email" error={errors["email"]}>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                className="form-control"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                {...fieldA11y("email", errors["email"])}
-              />
-            </Field>
-            <Field label="Contraseña" htmlFor="password" error={errors["password"]}>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                className="form-control"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                {...fieldA11y("password", errors["password"])}
-              />
-            </Field>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Ingresando…" : "Iniciar sesión"}
-            </Button>
-          </form>
-          <p className="mt-5 text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
-            <Link to="/crear-cuenta" className="font-semibold text-primary underline">
-              Crea una
-            </Link>
-          </p>
-        </Panel>
-      </main>
-      <PublicFooter />
-    </div>
+    <AuthShell
+      icon={<LogIn className="size-5" />}
+      title="Iniciar sesión"
+      switchPath="/crear-cuenta"
+      switchLabel="Crear cuenta"
+      footerText="¿No tienes cuenta?"
+      footerLinkText="Crea una"
+    >
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        <Field label="Correo" htmlFor="email" error={errors["email"]}>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className="form-control"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            {...fieldA11y("email", errors["email"])}
+          />
+        </Field>
+        <Field label="Contraseña" htmlFor="password" error={errors["password"]}>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            className="form-control"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            {...fieldA11y("password", errors["password"])}
+          />
+        </Field>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Ingresando…" : "Iniciar sesión"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
