@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import { AuthShell } from "@/components/shared/auth-shell";
+import { AuthShell, EmailField } from "@/components/shared/auth-shell";
 import { Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, loginSchema } from "@/api/auth";
-import { fieldA11y, zodErrors } from "@/lib/forms";
+import { fieldA11y } from "@/lib/forms";
+import { useAuthSubmit } from "@/lib/use-auth-submit";
 
 export const Route = createFileRoute("/iniciar-sesion")({
   component: LoginPage,
@@ -14,27 +14,11 @@ export const Route = createFileRoute("/iniciar-sesion")({
 const emptyForm = { email: "", password: "" };
 
 function LoginPage() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState(emptyForm);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const parsed = loginSchema.safeParse(form);
-    if (!parsed.success) {
-      setErrors(zodErrors(parsed.error));
-      return;
-    }
-    setErrors({});
-    setLoading(true);
-    try {
-      await auth.login(parsed.data);
-      await navigate({ to: "/panel" });
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { form, setForm, errors, loading, submit } = useAuthSubmit(
+    loginSchema,
+    auth.login,
+    emptyForm,
+  );
 
   return (
     <AuthShell
@@ -46,17 +30,11 @@ function LoginPage() {
       footerLinkText="Crea una"
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
-        <Field label="Correo" htmlFor="email" error={errors["email"]}>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            className="form-control"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            {...fieldA11y("email", errors["email"])}
-          />
-        </Field>
+        <EmailField
+          value={form.email}
+          onChange={(email) => setForm({ ...form, email })}
+          error={errors["email"]}
+        />
         <Field label="Contraseña" htmlFor="password" error={errors["password"]}>
           <input
             id="password"
