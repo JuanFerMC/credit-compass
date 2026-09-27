@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
-import { Panel } from "@/components/shared/page";
+import { Panel, Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
+import { fieldA11y } from "@/lib/forms";
 
 // iniciar-sesion.tsx y crear-cuenta.tsx compartían, palabra por palabra, todo
 // el "marco" de la página (header/footer público, el Panel centrado, el
@@ -59,5 +60,31 @@ export function AuthShell({
       </main>
       <PublicFooter />
     </div>
+  );
+}
+
+// El campo de correo era, carácter por carácter, idéntico en
+// iniciar-sesion.tsx y crear-cuenta.tsx.
+export function EmailField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  error: string | undefined;
+}) {
+  return (
+    <Field label="Correo" htmlFor="email" error={error}>
+      <input
+        id="email"
+        type="email"
+        autoComplete="email"
+        className="form-control"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        {...fieldA11y("email", error)}
+      />
+    </Field>
   );
 }

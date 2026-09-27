@@ -546,3 +546,37 @@ Verificación: `tsc --noEmit` y `eslint` limpios, build con
 responden `200`. No se corrió aquí la misma herramienta de duplicación
 que usa el usuario (no está en este entorno) — recomendado volver a
 correrla tras el merge para confirmar que baja del 3%.
+
+-- Claude (chat) -- PR "Extrae useAuthSubmit y EmailField (sigue bajando duplicación con SonarCloud)" --
+El usuario corrió SonarCloud después del PR anterior (AuthShell) y la
+duplicación entre `iniciar-sesion.tsx`/`crear-cuenta.tsx` solo bajó
+0.1% — seguía por encima del 3% óptimo. `AuthShell` sacó el "marco"
+visual, pero quedaban dos bloques igual de duplicados que no había
+tocado: el patrón de estado+submit (¡casi carácter por carácter
+idéntico entre los dos archivos, salvo el schema y la función de
+`auth.*`!) y el campo de correo (100% idéntico). Rama:
+`chore/dedup-auth-submit-logic`.
+
+Cambios:
+- `src/lib/use-auth-submit.ts` (nuevo): hook `useAuthSubmit(schema, action, emptyForm)`
+  con el `useState` de `form`/`errors`/`loading` + la función `submit()`
+  (validar con zod → `zodErrors` → `action(parsed.data)` →
+  `navigate({ to: "/panel" })`), genérico sobre el schema de zod.
+- `src/components/shared/auth-shell.tsx`: se agregó `EmailField` (nuevo
+  export, junto a `AuthShell`) — el campo de correo completo
+  (label+input+autoComplete+fieldA11y), que era idéntico en ambos
+  archivos.
+- `iniciar-sesion.tsx`/`crear-cuenta.tsx`: ahora solo llaman a
+  `useAuthSubmit(...)` y usan `<EmailField>`; lo único que les queda
+  propio es el ícono, los textos puntuales, el campo de contraseña
+  (con distinto `autoComplete`) y, en registro, el campo de nombre.
+
+No puedo correr SonarCloud desde este entorno para confirmar el
+número exacto — verificado con `tsc`/`eslint`/build/smoke-test. Si
+sigue por encima del 3% después de este PR, decime qué bloque exacto
+señala el reporte (SonarCloud suele mostrar los archivos y rangos de
+línea) y sigo con otra pasada.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, `/iniciar-sesion` y `/crear-cuenta`
+responden `200`.
