@@ -495,3 +495,22 @@ Pendiente para un bloque futuro (no se hizo aquí para mantenerlo chico):
 extraer un componente `<StatusDot active={...} />` — el patrón
 `` `status-dot ${x.active ? "status-active" : "status-inactive"}` `` se
 repite en `panel/variables.tsx` y `panel/reglas.tsx`.
+
+-- Claude (chat) -- PR "Extrae componente StatusDot (bloque 3 de limpieza)" --
+Tercer bloque de limpieza (duplicado pendiente del bloque anterior).
+Rama: `chore/extraer-status-dot`.
+
+- `src/components/shared/status-dot.tsx` (nuevo): `<StatusDot active={bool} />`.
+- Reemplaza el `className={`status-dot ${x.active ? "status-active" : "status-inactive"}`}`
+  duplicado en `panel/variables.tsx` y `panel/reglas.tsx` (idéntico en
+  ambos, hasta el texto "Activa"/"Inactiva").
+- Sin cambios de comportamiento ni de marcado visible.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, `/panel/variables` y `/panel/reglas`
+responden `200`.
+
+Con esto quedan resueltos todos los duplicados literales que se
+encontraron en este pase de limpieza (formularios + status-dot). El
+código muerto de `components/ui/` y las dependencias huérfanas ya se
+habían eliminado en un bloque anterior.

@@ -13,6 +13,7 @@ import {
 } from "@/api/client";
 import { riskVariables } from "@/data/demo-data";
 import { fieldA11y, zodErrors } from "@/lib/forms";
+import { StatusDot } from "@/components/shared/status-dot";
 
 export const Route = createFileRoute("/panel/variables")({
   head: () => ({
@@ -165,11 +166,7 @@ function VariablesPage() {
                     <td>{item.type}</td>
                     <td className="max-w-xs text-muted-foreground">{item.description}</td>
                     <td>
-                      <span
-                        className={`status-dot ${item.active ? "status-active" : "status-inactive"}`}
-                      >
-                        {item.active ? "Activa" : "Inactiva"}
-                      </span>
+                      <StatusDot active={item.active} />
                     </td>
                     <td className="text-right">
                       <Button

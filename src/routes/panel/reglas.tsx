@@ -19,6 +19,7 @@ import {
 } from "@/api/client";
 import { scoringRules } from "@/data/demo-data";
 import { fieldA11y, zodErrors } from "@/lib/forms";
+import { StatusDot } from "@/components/shared/status-dot";
 
 // La fila de la tabla "de ejemplo" trae valores con formato de lectura
 // ("$4.000.000", "30%", "3 años"), no el valorCondicion crudo que espera la
@@ -201,11 +202,7 @@ function RulesPage() {
                       {rule.points}
                     </td>
                     <td>
-                      <span
-                        className={`status-dot ${rule.active ? "status-active" : "status-inactive"}`}
-                      >
-                        {rule.active ? "Activa" : "Inactiva"}
-                      </span>
+                      <StatusDot active={rule.active} />
                     </td>
                     <td className="text-right">
                       <Button
