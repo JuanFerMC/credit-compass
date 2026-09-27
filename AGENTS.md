@@ -408,3 +408,56 @@ Cambios:
   `@/lib/auth`.
 - Verificación: `tsc --noEmit` y `eslint` limpios, build con
   `NITRO_PRESET=node-server` exitoso, las 9 rutas responden `200`.
+
+-- Claude (chat) -- PR "Limpieza: elimina componentes shadcn sin usar y dependencias huérfanas (bloque 1 de limpieza)" --
+Primer bloque de la limpieza de código pedida (duplicados, código
+sobrante, seguridad). Rama: `chore/limpieza-codigo-muerto`.
+
+Revisión de seguridad hecha en este bloque (sin hallazgos que corregir):
+- `npm audit` (con y sin dev deps): 0 vulnerabilidades.
+- Sin credenciales/tokens/API keys hardcodeados en `src/` (grep dirigido).
+- Los 2 únicos usos de `dangerouslySetInnerHTML` son seguros: el script
+  anti-parpadeo de tema en `__root.tsx` (string estático, sin interpolar
+  nada del usuario) y `components/ui/chart.tsx` (boilerplate de shadcn
+  para inyectar variables CSS desde una config tipada) — este último
+  además quedó eliminado en este mismo bloque por no usarse.
+- `src/api/auth.ts` no persiste la contraseña en ningún lado: la sesión
+  guardada en `localStorage` solo lleva `nombre`/`email`.
+
+Código muerto encontrado y eliminado:
+- De los 45 archivos en `src/components/ui/` (el scaffold completo de
+  shadcn), solo 9 se usan en toda la app (`button`, `dialog`, `input`,
+  `label`, `separator`, `sheet`, `skeleton`, `toggle`, `tooltip`) —
+  verificado por import estático, no por suposición. Se eliminaron los
+  36 restantes (accordion, alert, alert-dialog, aspect-ratio, avatar,
+  badge, breadcrumb, calendar, card, carousel, chart, checkbox,
+  collapsible, command, context-menu, drawer, dropdown-menu, form,
+  hover-card, input-otp, menubar, navigation-menu, pagination, popover,
+  progress, radio-group, resizable, scroll-area, select, sidebar,
+  slider, sonner, switch, table, tabs, textarea, toggle-group). Se
+  verificó primero que ninguno de los 9 que se conservan dependiera de
+  alguno de los 36 eliminados.
+- `src/hooks/use-mobile.tsx` eliminado: solo lo usaba `sidebar.tsx`
+  (también eliminado); la carpeta `hooks/` queda vacía y desaparece.
+- `package.json`: se quitaron las 31 dependencias que solo alimentaban
+  esos componentes eliminados (20 paquetes `@radix-ui/react-*` +
+  `@hookform/resolvers`, `cmdk`, `date-fns`, `embla-carousel-react`,
+  `input-otp`, `react-day-picker`, `react-hook-form`,
+  `react-resizable-panels`, `recharts`, `sonner`, `vaul`) — verificado
+  que ninguna se usaba fuera de `components/ui/` antes de quitarlas.
+  `node_modules` pasó de 414 a 333 paquetes.
+- `package-lock.json` regenerado con `npm install` para que quede en
+  sincronía con el `package.json` nuevo.
+
+**Pendiente manual, no se pudo hacer aquí**: `bun.lock` (el lockfile
+"real" del proyecto, el que usa el `Dockerfile`) sigue listando las 31
+dependencias eliminadas — este entorno no tiene el binario de `bun`
+disponible para regenerarlo. Falta correr `bun install` una vez en un
+entorno con Bun antes de reconstruir la imagen Docker, o el build de
+Docker puede fallar por desajuste entre `package.json` y `bun.lock`
+(`bun install --frozen-lockfile`).
+
+Verificación: `tsc --noEmit` y `eslint` limpios (bajó de 6 a 2 warnings
+preexistentes, las 4 que desaparecieron eran de archivos ahora
+eliminados), build con `NITRO_PRESET=node-server` exitoso, las 9 rutas
+responden `200`.
