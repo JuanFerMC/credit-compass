@@ -13,6 +13,7 @@ import {
   isApiConfigured,
 } from "@/api/client";
 import { applicants } from "@/data/demo-data";
+import { fieldA11y, zodErrors } from "@/lib/forms";
 
 export const Route = createFileRoute("/panel/solicitantes")({
   head: () => ({
@@ -62,11 +63,7 @@ function ApplicantsPage() {
     setNotice("");
     const parsed = applicantSchema.safeParse(form);
     if (!parsed.success) {
-      setErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
+      setErrors(zodErrors(parsed.error));
       return;
     }
     setErrors({});
@@ -267,8 +264,7 @@ function ApplicantsPage() {
                   className="form-control"
                   value={form.nombreCompleto}
                   onChange={(e) => update("nombreCompleto", e.target.value)}
-                  aria-invalid={Boolean(errors["nombreCompleto"])}
-                  aria-describedby={errors["nombreCompleto"] ? "nombre-error" : undefined}
+                  {...fieldA11y("nombre", errors["nombreCompleto"])}
                 />
               </Field>
               <Field label="Número de documento" htmlFor="numero" error={errors["numeroDocumento"]}>
@@ -278,8 +274,7 @@ function ApplicantsPage() {
                   inputMode="numeric"
                   value={form.numeroDocumento}
                   onChange={(e) => update("numeroDocumento", e.target.value.replace(/\D/g, ""))}
-                  aria-invalid={Boolean(errors["numeroDocumento"])}
-                  aria-describedby={errors["numeroDocumento"] ? "numero-error" : undefined}
+                  {...fieldA11y("numero", errors["numeroDocumento"])}
                 />
               </Field>
               <Field
@@ -294,8 +289,7 @@ function ApplicantsPage() {
                   min="0"
                   value={form.ingresosMensuales}
                   onChange={(e) => update("ingresosMensuales", Number(e.target.value))}
-                  aria-invalid={Boolean(errors["ingresosMensuales"])}
-                  aria-describedby={errors["ingresosMensuales"] ? "ingresos-error" : undefined}
+                  {...fieldA11y("ingresos", errors["ingresosMensuales"])}
                 />
               </Field>
               <Field label="Deudas mensuales" htmlFor="deudas" error={errors["deudasMensuales"]}>
@@ -306,8 +300,7 @@ function ApplicantsPage() {
                   min="0"
                   value={form.deudasMensuales}
                   onChange={(e) => update("deudasMensuales", Number(e.target.value))}
-                  aria-invalid={Boolean(errors["deudasMensuales"])}
-                  aria-describedby={errors["deudasMensuales"] ? "deudas-error" : undefined}
+                  {...fieldA11y("deudas", errors["deudasMensuales"])}
                 />
               </Field>
               <Field label="Número de moras" htmlFor="moras" error={errors["numeroMoras"]}>
@@ -319,8 +312,7 @@ function ApplicantsPage() {
                   step="1"
                   value={form.numeroMoras}
                   onChange={(e) => update("numeroMoras", Number(e.target.value))}
-                  aria-invalid={Boolean(errors["numeroMoras"])}
-                  aria-describedby={errors["numeroMoras"] ? "moras-error" : undefined}
+                  {...fieldA11y("moras", errors["numeroMoras"])}
                 />
               </Field>
               <Field
@@ -338,8 +330,7 @@ function ApplicantsPage() {
                       e.target.value as ApplicantInput["historialCrediticio"],
                     )
                   }
-                  aria-invalid={Boolean(errors["historialCrediticio"])}
-                  aria-describedby={errors["historialCrediticio"] ? "historial-error" : undefined}
+                  {...fieldA11y("historial", errors["historialCrediticio"])}
                 >
                   <option value="BUENO">Bueno</option>
                   <option value="REGULAR">Regular</option>
@@ -359,8 +350,7 @@ function ApplicantsPage() {
                   step="0.1"
                   value={form.antiguedadLaboral}
                   onChange={(e) => update("antiguedadLaboral", Number(e.target.value))}
-                  aria-invalid={Boolean(errors["antiguedadLaboral"])}
-                  aria-describedby={errors["antiguedadLaboral"] ? "antiguedad-error" : undefined}
+                  {...fieldA11y("antiguedad", errors["antiguedadLaboral"])}
                 />
               </Field>
               <div className="flex justify-end gap-2 sm:col-span-2">

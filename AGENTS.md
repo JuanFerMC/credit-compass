@@ -461,3 +461,37 @@ Verificación: `tsc --noEmit` y `eslint` limpios (bajó de 6 a 2 warnings
 preexistentes, las 4 que desaparecieron eran de archivos ahora
 eliminados), build con `NITRO_PRESET=node-server` exitoso, las 9 rutas
 responden `200`.
+
+-- Claude (chat) -- PR "Extrae helpers de formularios: zodErrors y fieldA11y (bloque 2 de limpieza)" --
+Segundo bloque de limpieza (duplicados de lógica). Rama:
+`chore/dedup-formularios`.
+
+Se buscó código duplicado literalmente (no solo estructuralmente
+similar) y se encontraron dos patrones repetidos palabra por palabra en
+varios archivos:
+
+- **Mapeo de errores de zod**: `Object.fromEntries(parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]))`
+  aparecía igual en `crear-cuenta.tsx`, `iniciar-sesion.tsx`,
+  `panel/solicitantes.tsx`, `panel/variables.tsx` y dos veces en
+  `panel/reglas.tsx` (formulario de crear y de editar) — 6 apariciones en
+  5 archivos. Extraído a `zodErrors(error)` en `src/lib/forms.ts`.
+- **Par aria-invalid/aria-describedby**: el mismo patrón de 2 líneas
+  (`aria-invalid={Boolean(errors["x"])}` +
+  `aria-describedby={errors["x"] ? "id-error" : undefined}`) aparecía 19
+  veces en total entre esos mismos 5 archivos (7 en solicitantes, 6 en
+  reglas, 3 en crear-cuenta, 2 en iniciar-sesion, 1 en variables).
+  Extraído a `fieldA11y(id, error)` en el mismo archivo, usado como
+  spread: `{...fieldA11y("nombre", errors["nombreCompleto"])}`.
+
+`src/lib/forms.ts` es nuevo — ninguno de los dos helpers existía antes.
+No se tocó la lógica de validación en sí (los schemas zod de
+`src/api/client.ts`/`auth.ts` no cambiaron), solo cómo se lee su
+resultado.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, las 9 rutas responden `200`.
+
+Pendiente para un bloque futuro (no se hizo aquí para mantenerlo chico):
+extraer un componente `<StatusDot active={...} />` — el patrón
+`` `status-dot ${x.active ? "status-active" : "status-inactive"}` `` se
+repite en `panel/variables.tsx` y `panel/reglas.tsx`.

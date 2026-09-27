@@ -12,6 +12,7 @@ import {
   type RiskVariableInput,
 } from "@/api/client";
 import { riskVariables } from "@/data/demo-data";
+import { fieldA11y, zodErrors } from "@/lib/forms";
 
 export const Route = createFileRoute("/panel/variables")({
   head: () => ({
@@ -93,11 +94,7 @@ function VariablesPage() {
     setStatusMessage("");
     const parsed = changeRiskVariableStatusSchema.safeParse(statusForm);
     if (!parsed.success) {
-      setStatusErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
+      setStatusErrors(zodErrors(parsed.error));
       return;
     }
     setStatusErrors({});
@@ -283,8 +280,7 @@ function VariablesPage() {
               onChange={(e) =>
                 setStatusForm({ ...statusForm, idRiesgo: e.target.value.replace(/\D/g, "") })
               }
-              aria-invalid={Boolean(statusErrors["idRiesgo"])}
-              aria-describedby={statusErrors["idRiesgo"] ? "status-id-error" : undefined}
+              {...fieldA11y("status-id", statusErrors["idRiesgo"])}
             />
           </Field>
           <Field label="Nuevo estado" htmlFor="status-estado">
