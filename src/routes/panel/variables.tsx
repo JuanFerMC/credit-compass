@@ -10,7 +10,7 @@ import {
   isApiConfigured,
   riskVariableSchema,
   type RiskVariableInput,
-} from "@/lib/api";
+} from "@/api/client";
 import { riskVariables } from "@/data/demo-data";
 
 export const Route = createFileRoute("/panel/variables")({
