@@ -5,6 +5,7 @@ import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
 import { Panel, Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, signupSchema } from "@/api/auth";
+import { fieldA11y, zodErrors } from "@/lib/forms";
 
 export const Route = createFileRoute("/crear-cuenta")({
   component: SignupPage,
@@ -22,11 +23,7 @@ function SignupPage() {
     event.preventDefault();
     const parsed = signupSchema.safeParse(form);
     if (!parsed.success) {
-      setErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
+      setErrors(zodErrors(parsed.error));
       return;
     }
     setErrors({});
@@ -68,8 +65,7 @@ function SignupPage() {
                 className="form-control"
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                aria-invalid={Boolean(errors["nombre"])}
-                aria-describedby={errors["nombre"] ? "nombre-error" : undefined}
+                {...fieldA11y("nombre", errors["nombre"])}
               />
             </Field>
             <Field label="Correo" htmlFor="email" error={errors["email"]}>
@@ -80,8 +76,7 @@ function SignupPage() {
                 className="form-control"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                aria-invalid={Boolean(errors["email"])}
-                aria-describedby={errors["email"] ? "email-error" : undefined}
+                {...fieldA11y("email", errors["email"])}
               />
             </Field>
             <Field label="Contraseña" htmlFor="password" error={errors["password"]}>
@@ -92,8 +87,7 @@ function SignupPage() {
                 className="form-control"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                aria-invalid={Boolean(errors["password"])}
-                aria-describedby={errors["password"] ? "password-error" : undefined}
+                {...fieldA11y("password", errors["password"])}
               />
             </Field>
             <Button type="submit" className="w-full" disabled={loading}>

@@ -18,6 +18,7 @@ import {
   type RiskVariableName,
 } from "@/api/client";
 import { scoringRules } from "@/data/demo-data";
+import { fieldA11y, zodErrors } from "@/lib/forms";
 
 // La fila de la tabla "de ejemplo" trae valores con formato de lectura
 // ("$4.000.000", "30%", "3 años"), no el valorCondicion crudo que espera la
@@ -100,11 +101,7 @@ function RulesPage() {
     setCreateMessage("");
     const parsed = createScoringRuleSchema.safeParse(createForm);
     if (!parsed.success) {
-      setCreateErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
+      setCreateErrors(zodErrors(parsed.error));
       return;
     }
     setCreateErrors({});
@@ -133,11 +130,7 @@ function RulesPage() {
     setEditMessage("");
     const parsed = editScoringRuleSchema.safeParse(editForm);
     if (!parsed.success) {
-      setEditErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
+      setEditErrors(zodErrors(parsed.error));
       return;
     }
     setEditErrors({});
@@ -289,8 +282,7 @@ function RulesPage() {
                   onChange={(e) =>
                     setCreateForm({ ...createForm, idRiesgo: e.target.value.replace(/\D/g, "") })
                   }
-                  aria-invalid={Boolean(createErrors["idRiesgo"])}
-                  aria-describedby={createErrors["idRiesgo"] ? "id-riesgo-error" : undefined}
+                  {...fieldA11y("id-riesgo", createErrors["idRiesgo"])}
                 />
               </Field>
               <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
@@ -334,8 +326,7 @@ function RulesPage() {
                       onChange={(e) =>
                         setCreateForm({ ...createForm, valorCondicion: e.target.value })
                       }
-                      aria-invalid={Boolean(createErrors["valorCondicion"])}
-                      aria-describedby={createErrors["valorCondicion"] ? "value-error" : undefined}
+                      {...fieldA11y("value", createErrors["valorCondicion"])}
                     />
                   </Field>
                 )}
@@ -352,8 +343,7 @@ function RulesPage() {
                   onChange={(e) =>
                     setCreateForm({ ...createForm, puntaje: Number(e.target.value) })
                   }
-                  aria-invalid={Boolean(createErrors["puntaje"])}
-                  aria-describedby={createErrors["puntaje"] ? "points-error" : undefined}
+                  {...fieldA11y("points", createErrors["puntaje"])}
                 />
               </Field>
               <Button className="w-full" type="submit" disabled={creating}>
@@ -390,8 +380,7 @@ function RulesPage() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, idRegla: e.target.value.replace(/\D/g, "") })
                   }
-                  aria-invalid={Boolean(editErrors["idRegla"])}
-                  aria-describedby={editErrors["idRegla"] ? "id-regla-error" : undefined}
+                  {...fieldA11y("id-regla", editErrors["idRegla"])}
                 />
               </Field>
               <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
@@ -415,8 +404,7 @@ function RulesPage() {
                     className="form-control"
                     value={editForm.valorCondicion}
                     onChange={(e) => setEditForm({ ...editForm, valorCondicion: e.target.value })}
-                    aria-invalid={Boolean(editErrors["valorCondicion"])}
-                    aria-describedby={editErrors["valorCondicion"] ? "edit-value-error" : undefined}
+                    {...fieldA11y("edit-value", editErrors["valorCondicion"])}
                   />
                 </Field>
               </div>
@@ -434,8 +422,7 @@ function RulesPage() {
                   className="form-control"
                   value={editForm.puntaje}
                   onChange={(e) => setEditForm({ ...editForm, puntaje: Number(e.target.value) })}
-                  aria-invalid={Boolean(editErrors["puntaje"])}
-                  aria-describedby={editErrors["puntaje"] ? "edit-points-error" : undefined}
+                  {...fieldA11y("edit-points", editErrors["puntaje"])}
                 />
               </Field>
               <Button className="w-full" variant="secondary" type="submit" disabled={editing}>
