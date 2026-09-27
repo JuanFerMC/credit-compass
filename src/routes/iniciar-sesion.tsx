@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
 import { Panel, Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
-import { auth, loginSchema } from "@/lib/auth";
+import { auth, loginSchema } from "@/api/auth";
 
 export const Route = createFileRoute("/iniciar-sesion")({
   component: LoginPage,

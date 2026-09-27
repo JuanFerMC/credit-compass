@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel } from "@/components/shared/page";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { api, ApiRequestError, isApiConfigured, scoreRequestSchema, type Evaluation } from "@/lib/api";
+import { api, ApiRequestError, isApiConfigured, scoreRequestSchema, type Evaluation } from "@/api/client";
 
 export const Route = createFileRoute("/panel/evaluaciones")({ head: () => ({ meta: [
   { title: "Evaluaciones — Veridica" }, { name: "description", content: "Cálculo explicable e historial de scoring crediticio." }, { property: "og:title", content: "Evaluaciones — Veridica" }, { property: "og:description", content: "Cálculo explicable e historial de scoring crediticio." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },

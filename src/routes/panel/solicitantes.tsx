@@ -11,7 +11,7 @@ import {
   type ApplicantInput,
   ApiRequestError,
   isApiConfigured,
-} from "@/lib/api";
+} from "@/api/client";
 import { applicants } from "@/data/demo-data";
 
 export const Route = createFileRoute("/panel/solicitantes")({

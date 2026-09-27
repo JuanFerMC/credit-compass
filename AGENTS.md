@@ -392,3 +392,19 @@ Cambios:
 Pendiente para el siguiente bloque de reorganización: revisar si
 `src/lib/api.ts`/`auth.ts` deberían moverse a un `src/api/` propio — no
 se hizo en este bloque para mantenerlo pequeño.
+
+-- Claude (chat) -- PR "Mueve api.ts/auth.ts a src/api/ (bloque 3)" --
+Segundo bloque de reorganización. Rama: `chore/mover-api-a-src-api`.
+
+Cambios:
+- `src/lib/api.ts` → `src/api/client.ts` (renombrado: dentro de `src/api/`
+  ya es obvio que es "el cliente", no hacía falta seguir llamándolo
+  `api.ts`).
+- `src/lib/auth.ts` → `src/api/auth.ts`.
+- `src/lib/` se queda con `utils.ts` (el helper `cn()`) y los archivos de
+  manejo de errores de TanStack Start/Lovable, que no se tocan (mismo
+  motivo que el bloque anterior: rutas de import fijas).
+- Imports actualizados en los 7 archivos que consumían `@/lib/api` o
+  `@/lib/auth`.
+- Verificación: `tsc --noEmit` y `eslint` limpios, build con
+  `NITRO_PRESET=node-server` exitoso, las 9 rutas responden `200`.

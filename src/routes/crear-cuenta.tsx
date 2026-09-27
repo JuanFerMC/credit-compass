@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
 import { Panel, Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
-import { auth, signupSchema } from "@/lib/auth";
+import { auth, signupSchema } from "@/api/auth";
 
 export const Route = createFileRoute("/crear-cuenta")({
   component: SignupPage,

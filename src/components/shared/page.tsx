@@ -1,6 +1,6 @@
 import { forwardRef, type ReactNode } from "react";
 import { Info, WifiOff } from "lucide-react";
-import { isApiConfigured } from "@/lib/api";
+import { isApiConfigured } from "@/api/client";
 
 export function PageHeader({
   eyebrow,

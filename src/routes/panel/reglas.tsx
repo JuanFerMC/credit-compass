@@ -16,7 +16,7 @@ import {
   type EditScoringRuleInput,
   type OperatorSymbol,
   type RiskVariableName,
-} from "@/lib/api";
+} from "@/api/client";
 import { scoringRules } from "@/data/demo-data";
 
 // La fila de la tabla "de ejemplo" trae valores con formato de lectura
