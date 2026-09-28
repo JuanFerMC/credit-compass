@@ -163,6 +163,9 @@ const API_BASE_URL = (import.meta.env["VITE_API_BASE_URL"] as string | undefined
   "",
 );
 
+// Sin timeout, un backend colgado deja el formulario en "cargando" para siempre.
+const REQUEST_TIMEOUT_MS = 15_000;
+
 export class ApiRequestError extends Error {
   constructor(
     message: string,
@@ -184,9 +187,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
-  } catch {
-    throw new ApiRequestError("No fue posible conectar con el backend.", 0);
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+      signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const timedOut = error instanceof DOMException && error.name === "TimeoutError";
+    throw new ApiRequestError(
+      timedOut
+        ? "El backend tardó demasiado en responder."
+        : "No fue posible conectar con el backend.",
+      0,
+    );
   }
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ApiError;
@@ -200,7 +213,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // 200/201 con body vacío no debería ocurrir en esta API, pero por si acaso
   // evitamos que `response.json()` reviente un flujo que sí fue exitoso.
   const text = await response.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+  if (!text) return undefined as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiRequestError(
+      "La respuesta del backend no tiene un formato válido.",
+      response.status,
+    );
+  }
 }
 
 export const api = {

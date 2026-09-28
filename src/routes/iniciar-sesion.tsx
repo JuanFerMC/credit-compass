@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
-import { AuthShell, EmailField } from "@/components/shared/auth-shell";
+import { AuthShell, EmailField, FormError } from "@/components/shared/auth-shell";
 import { Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, loginSchema } from "@/api/auth";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/iniciar-sesion")({
 const emptyForm = { email: "", password: "" };
 
 function LoginPage() {
-  const { form, setForm, errors, loading, submit } = useAuthSubmit(
+  const { form, setForm, errors, formError, loading, submit } = useAuthSubmit(
     loginSchema,
     auth.login,
     emptyForm,
@@ -30,6 +30,7 @@ function LoginPage() {
       footerLinkText="Crea una"
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
+        <FormError message={formError} />
         <EmailField
           value={form.email}
           onChange={(email) => setForm({ ...form, email })}

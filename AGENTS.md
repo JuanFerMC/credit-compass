@@ -580,3 +580,52 @@ línea) y sigo con otra pasada.
 Verificación: `tsc --noEmit` y `eslint` limpios, build con
 `NITRO_PRESET=node-server` exitoso, `/iniciar-sesion` y `/crear-cuenta`
 responden `200`.
+
+-- Claude (chat) -- PR "Mejora seguridad y fiabilidad (bloque 1)" --
+Pedido del usuario: subir los porcentajes de seguridad y fiabilidad que
+reporta SonarCloud (no se puede correr SonarCloud desde este entorno; se
+auditó el código en busca de los patrones que suele marcar). Rama:
+`chore/seguridad-fiabilidad`.
+
+Seguridad:
+- `src/server.ts`: todas las respuestas (incluidas las de error) llevan
+  ahora `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+  `Referrer-Policy`, `Permissions-Policy` y `Strict-Transport-Security`.
+  Verificado con `curl -I` contra el build. NO se agregó
+  `Content-Security-Policy`: TanStack Start inyecta scripts inline de
+  hidratación (y `__root.tsx` uno para el tema), así que una CSP útil
+  necesita nonces — queda como mejora aparte. `server.ts` es archivo de
+  infraestructura (lo referencia `vite.config.ts`): solo se agregó código,
+  no se movió ni se cambió su contrato.
+- `src/api/auth.ts`: la sesión leída de `localStorage` ahora se valida con
+  zod (`sessionSchema`); antes se hacía `JSON.parse(...) as Session`, y
+  cualquiera puede editar ese valor desde las devtools.
+- `compose.yaml`: se quitó el mapeo de puerto `8080:8080` del servicio del
+  frontend (el frontend solo escucha en 3000; exponer 8080 era superficie
+  innecesaria y confusa).
+
+Fiabilidad:
+- `src/api/client.ts`: `request()` no tenía timeout — un backend colgado
+  dejaba el formulario en "cargando" indefinidamente. Ahora aborta a los
+  15 s con mensaje propio. Además, un 200 con cuerpo que no es JSON
+  válido lanzaba un `SyntaxError` sin manejar; ahora es un
+  `ApiRequestError` con mensaje claro.
+- `src/lib/use-auth-submit.ts`: si `auth.login/signup` fallaba, quedaba
+  una promesa rechazada sin manejar y el usuario no veía nada. Ahora se
+  captura y se muestra con el nuevo `<FormError>` (en `auth-shell.tsx`,
+  con `role="alert"`).
+- `src/api/auth.ts`: la escritura a `localStorage` se centralizó en
+  `saveSession()` (antes duplicada en login y signup) y va en try/catch:
+  puede lanzar en modo privado o con la cuota llena.
+- `src/routes/panel/variables.tsx`: el `catch` de crear variable
+  descartaba el mensaje real del backend y mostraba uno genérico; ahora
+  muestra el `ApiRequestError.message` cuando existe.
+
+Pendiente (no se hizo aquí): CSP con nonces; el backend de referencia usa
+`http://localhost` en los ejemplos (`.env.example`, `compose.yaml`,
+`DEPLOYMENT.md`) — SonarCloud puede marcarlos como hotspot, pero son
+valores de desarrollo local, no de producción.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, cabeceras confirmadas con `curl -I`,
+las 9 rutas responden `200`.

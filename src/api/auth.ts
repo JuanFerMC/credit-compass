@@ -24,7 +24,20 @@ export const signupSchema = z.object({
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
-export type Session = { nombre: string; email: string };
+// Se valida al leer: localStorage lo puede editar cualquiera desde las
+// devtools, así que nunca se asume que lo guardado tiene la forma esperada.
+const sessionSchema = z.object({ nombre: z.string(), email: z.string() });
+export type Session = z.infer<typeof sessionSchema>;
+
+// localStorage puede lanzar (modo privado, cuota llena, políticas del
+// navegador): la sesión demo es "best effort" y no debe romper el login.
+function saveSession(session: Session) {
+  try {
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {
+    // Sin persistencia: el usuario igual entra al panel esta vez.
+  }
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,18 +50,14 @@ export const auth = {
   async login(input: LoginInput): Promise<Session> {
     await delay(500);
     const session: Session = { nombre: input.email.split("@")[0] ?? "Usuario", email: input.email };
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
+    saveSession(session);
     return session;
   },
   // Demo: ídem, para cuando exista POST /api/v1/auth/registro.
   async signup(input: SignupInput): Promise<Session> {
     await delay(500);
     const session: Session = { nombre: input.nombre, email: input.email };
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
+    saveSession(session);
     return session;
   },
   logout() {
@@ -60,7 +69,8 @@ export const auth = {
     if (typeof window === "undefined") return null;
     try {
       const raw = window.localStorage.getItem(SESSION_KEY);
-      return raw ? (JSON.parse(raw) as Session) : null;
+      const parsed = raw ? sessionSchema.safeParse(JSON.parse(raw)) : null;
+      return parsed?.success ? parsed.data : null;
     } catch {
       return null;
     }
