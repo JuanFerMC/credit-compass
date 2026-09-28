@@ -629,3 +629,39 @@ valores de desarrollo local, no de producción.
 Verificación: `tsc --noEmit` y `eslint` limpios, build con
 `NITRO_PRESET=node-server` exitoso, cabeceras confirmadas con `curl -I`,
 las 9 rutas responden `200`.
+
+-- Claude (chat) -- PR "SonarCloud: security en Dockerfile + reliability en styles.css (1 + 10 issues)" --
+Primera tanda de las 55 issues que reportó SonarCloud, atacadas una por
+una según lo indicado por el usuario. Rama: `fix/sonar-dockerfile-y-css`.
+
+**Security (1 issue) — Dockerfile**: "Omitting `--ignore-scripts` allows
+lifecycle scripts to run during package installation." Se agregó
+`--ignore-scripts` a `bun install --frozen-lockfile`. Verificado antes de
+aplicarlo que ningún paquete de todo el árbol de dependencias (`node_modules`
+completo, instalado con npm) define un script `preinstall`/`install`/
+`postinstall` — el riesgo de que esto rompa el build es, por lo tanto,
+bajo (aunque no se pudo confirmar con `bun` mismo, no disponible en este
+entorno).
+
+**Reliability (10 issues) — `src/styles.css`**:
+- "Invalid position for @import rule": `@import "tw-animate-css";`
+  estaba después de dos reglas `@source` (de Tailwind v4). Por spec, los
+  `@import` deben ir antes que cualquier otra regla (salvo `@charset`).
+  Se reordenó: los dos `@import` quedan primero, `@source` después.
+- "Missing scoping root" (9 issues): el analizador CSS de Sonar no
+  reconoce `@utility` (at-rule propio de Tailwind v4), así que los
+  selectores anidados `&` dentro de esos bloques (`@utility form-control`,
+  `@utility data-table`, `@utility status-dot`) le parecían "sueltos" sin
+  una regla que los contuviera — 2 + 6 + 1 = 9, exacto. Se sacó la
+  anidación: las declaraciones base quedan en el `@utility` (que sigue
+  generando la clase para Tailwind) y los estados/hijos
+  (`:focus`, `[aria-invalid]`, `thead`/`th`/`td`/`tbody tr`, `::before`)
+  pasaron a selectores planos (`.form-control:focus`, `.data-table th`,
+  etc.) fuera del bloque. Es un cambio de forma, no de fondo: verificado
+  contra el CSS compilado que las mismas reglas siguen generándose
+  (`.status-dot:before{...}` etc. — el minificador solo cambia `::before`
+  por `:before`, equivalente).
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, CSS compilado inspeccionado para
+confirmar que ninguna regla se perdió, las 9 rutas responden `200`.
