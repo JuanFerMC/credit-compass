@@ -17,6 +17,7 @@ export function useAuthSubmit<Schema extends z.ZodTypeAny>(
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -26,14 +27,19 @@ export function useAuthSubmit<Schema extends z.ZodTypeAny>(
       return;
     }
     setErrors({});
+    setFormError("");
     setLoading(true);
     try {
       await action(parsed.data);
       await navigate({ to: "/panel" });
+    } catch (error) {
+      // Sin este catch, un fallo de auth.* quedaba como promesa rechazada
+      // sin manejar y el formulario no mostraba nada.
+      setFormError(error instanceof Error ? error.message : "No fue posible continuar.");
     } finally {
       setLoading(false);
     }
   }
 
-  return { form, setForm, errors, loading, submit };
+  return { form, setForm, errors, formError, loading, submit };
 }

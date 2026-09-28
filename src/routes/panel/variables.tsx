@@ -83,8 +83,8 @@ function VariablesPage() {
           : "Variable validada. Conecta la API para guardarla.",
       );
       setForm({ ...form, descripcion: "" });
-    } catch {
-      setError("No fue posible crear la variable.");
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "No fue posible crear la variable.");
     } finally {
       setLoading(false);
     }

@@ -88,3 +88,13 @@ export function EmailField({
     </Field>
   );
 }
+
+// Error a nivel de formulario (no de campo), p. ej. un fallo del backend.
+export function FormError({ message }: { message: string }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="rounded-lg bg-destructive-soft p-3 text-sm text-destructive">
+      {message}
+    </p>
+  );
+}

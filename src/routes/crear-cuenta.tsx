@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
-import { AuthShell, EmailField } from "@/components/shared/auth-shell";
+import { AuthShell, EmailField, FormError } from "@/components/shared/auth-shell";
 import { Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { auth, signupSchema } from "@/api/auth";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/crear-cuenta")({
 const emptyForm = { nombre: "", email: "", password: "" };
 
 function SignupPage() {
-  const { form, setForm, errors, loading, submit } = useAuthSubmit(
+  const { form, setForm, errors, formError, loading, submit } = useAuthSubmit(
     signupSchema,
     auth.signup,
     emptyForm,
@@ -30,6 +30,7 @@ function SignupPage() {
       footerLinkText="Inicia sesión"
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
+        <FormError message={formError} />
         <Field label="Nombre" htmlFor="nombre" error={errors["nombre"]}>
           <input
             id="nombre"
