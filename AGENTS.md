@@ -665,3 +665,33 @@ entorno).
 Verificación: `tsc --noEmit` y `eslint` limpios, build con
 `NITRO_PRESET=node-server` exitoso, CSS compilado inspeccionado para
 confirmar que ninguna regla se perdió, las 9 rutas responden `200`.
+
+-- Claude (chat) -- PR "SonarCloud: routeTree.gen.ts, role=status y ternarios anidados (4 issues)" --
+Segunda tanda de issues de SonarCloud. Rama:
+`fix/sonar-routetree-ternarios-status`.
+
+- **`src/routeTree.gen.ts`** — "Specify the rules you want to disable.":
+  este archivo lo regenera el plugin de TanStack Router en cada
+  build/dev a partir de `src/routes/**`; su cabecera (`/* eslint-disable */`
+  sin reglas, `// @ts-nocheck`) la pone el generador, no nosotros —
+  editarla a mano no sirve, se sobrescribe en el siguiente build. Se
+  agregó `sonar-project.properties` excluyéndolo del análisis
+  (`sonar.exclusions`), que es el enfoque correcto para código generado
+  que no se controla.
+- **`src/components/shared/page.tsx`**:
+  - "Use `<output>` instead of the "status" role": `DemoNotice` usaba
+    `role="status"` en un `<div>`; cambiado a un elemento `<output>`
+    nativo (semántica equivalente, soporte de accesibilidad más
+    consistente entre navegadores/lectores de pantalla).
+  - "Extract this nested ternary operation": `Field` resolvía su mensaje
+    con `error ? <p>...</p> : hint ? <p>...</p> : null`; reescrito como
+    `if/else if` asignando a una variable `message`.
+- **`src/components/shared/status-badge.tsx`** (2 issues, misma causa):
+  la cadena `tone === "positive" ? ... : tone === "negative" || tone === "critical" ? ... : tone === "warning" ? ... : ...`
+  tenía dos niveles de anidación — Sonar la marca una vez por cada nivel.
+  Reemplazada por una tabla `ICON_BY_TONE: Record<tone, Icon>`, más corta
+  y sin ternarios.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, las 7 rutas principales responden
+`200`.

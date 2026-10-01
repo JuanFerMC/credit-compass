@@ -42,16 +42,13 @@ export const Panel = forwardRef<HTMLElement, { children: ReactNode; className?: 
 export function DemoNotice() {
   if (isApiConfigured) return null;
   return (
-    <div
-      className="flex items-start gap-3 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm"
-      role="status"
-    >
+    <output className="flex items-start gap-3 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm">
       <WifiOff className="mt-0.5 size-4 shrink-0 text-info" aria-hidden="true" />
       <p>
         <strong>Modo demostración.</strong> Conecta la dirección del backend para guardar y
         consultar información real.
       </p>
-    </div>
+    </output>
   );
 }
 
@@ -76,19 +73,26 @@ export function Field({
   hint?: string | undefined;
   children: ReactNode;
 }) {
+  // Antes era un ternario anidado (error ? … : hint ? … : null); Sonar lo
+  // marca porque anidar ternarios es difícil de leer de un vistazo.
+  let message: ReactNode = null;
+  if (error) {
+    message = (
+      <p className="mt-1.5 text-xs font-medium text-destructive" id={`${htmlFor}-error`}>
+        {error}
+      </p>
+    );
+  } else if (hint) {
+    message = <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>;
+  }
+
   return (
     <div>
       <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">
         {label}
       </label>
       {children}
-      {error ? (
-        <p className="mt-1.5 text-xs font-medium text-destructive" id={`${htmlFor}-error`}>
-          {error}
-        </p>
-      ) : hint ? (
-        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
-      ) : null}
+      {message}
     </div>
   );
 }
