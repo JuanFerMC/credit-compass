@@ -8,6 +8,18 @@ const styles = {
   critical: "bg-critical-soft text-critical",
 } as const;
 
+// Antes era una cadena de ternarios anidados (tone === "positive" ? … :
+// tone === "negative" || "critical" ? … : …); Sonar la marca dos veces
+// porque hay dos niveles de anidación. Una tabla es a la vez más corta y
+// más fácil de leer.
+const ICON_BY_TONE: Record<keyof typeof styles, typeof CheckCircle2> = {
+  positive: CheckCircle2,
+  accent: CircleDot,
+  warning: AlertTriangle,
+  negative: ShieldAlert,
+  critical: ShieldAlert,
+};
+
 export function StatusBadge({
   tone,
   children,
@@ -15,14 +27,7 @@ export function StatusBadge({
   tone: keyof typeof styles;
   children: React.ReactNode;
 }) {
-  const Icon =
-    tone === "positive"
-      ? CheckCircle2
-      : tone === "negative" || tone === "critical"
-        ? ShieldAlert
-        : tone === "warning"
-          ? AlertTriangle
-          : CircleDot;
+  const Icon = ICON_BY_TONE[tone];
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold ${styles[tone]}`}
