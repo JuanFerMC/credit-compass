@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ApiRequestError, cleanBaseUrl, createHttpClient } from "@/api/http";
+import { getToken } from "@/api/token-store";
 
 /*
  * Catálogo cerrado de variables de riesgo (HU3, RF01) y su tipo asociado.
@@ -158,71 +160,21 @@ export type ApiError = {
   traceId?: string;
 };
 
-const API_BASE_URL = (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(
-  /\/$/,
-  "",
-);
+// Motor de Scoring (:8080). Hoy responde `permitAll()` y su CORS NO incluye
+// `Authorization` en allowedHeaders: enviarle el token haría que el navegador
+// bloquee el preflight. Se activa con VITE_SCORING_SENDS_TOKEN=true el día que
+// scoring valide JWT y habilite ese header.
+const API_BASE_URL = cleanBaseUrl(import.meta.env["VITE_API_BASE_URL"] as string | undefined);
+const SCORING_SENDS_TOKEN = import.meta.env["VITE_SCORING_SENDS_TOKEN"] === "true";
 
-// Sin timeout, un backend colgado deja el formulario en "cargando" para siempre.
-const REQUEST_TIMEOUT_MS = 15_000;
+export { ApiRequestError };
 
-export class ApiRequestError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public details: string[] = [],
-    public traceId?: string,
-  ) {
-    super(message);
-  }
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!API_BASE_URL)
-    throw new ApiRequestError(
-      "La API no está configurada. La información de demostración sigue disponible.",
-      0,
-    );
-  const headers = new Headers(init?.headers);
-  if (init?.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      headers,
-      signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
-  } catch (error) {
-    const timedOut = error instanceof DOMException && error.name === "TimeoutError";
-    throw new ApiRequestError(
-      timedOut
-        ? "El backend tardó demasiado en responder."
-        : "No fue posible conectar con el backend.",
-      0,
-    );
-  }
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as ApiError;
-    throw new ApiRequestError(
-      error.message ?? "No fue posible completar la solicitud",
-      response.status,
-      error.details ?? [],
-      error.traceId,
-    );
-  }
-  // 200/201 con body vacío no debería ocurrir en esta API, pero por si acaso
-  // evitamos que `response.json()` reviente un flujo que sí fue exitoso.
-  const text = await response.text();
-  if (!text) return undefined as T;
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new ApiRequestError(
-      "La respuesta del backend no tiene un formato válido.",
-      response.status,
-    );
-  }
-}
+const request = createHttpClient({
+  baseUrl: API_BASE_URL,
+  notConfiguredMessage:
+    "La API no está configurada. La información de demostración sigue disponible.",
+  getToken: SCORING_SENDS_TOKEN ? getToken : undefined,
+});
 
 export const api = {
   // HU1

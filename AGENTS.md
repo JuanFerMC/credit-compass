@@ -695,3 +695,57 @@ Segunda tanda de issues de SonarCloud. Rama:
 Verificación: `tsc --noEmit` y `eslint` limpios, build con
 `NITRO_PRESET=node-server` exitoso, las 7 rutas principales responden
 `200`.
+
+-- Claude (chat) -- PR "Auth P1: cliente HTTP multi-backend (integración Security-Module)" --
+Contexto: el usuario pidió adaptar el front al nuevo backend de
+autenticación (https://github.com/JuanFerMC/Security-Module — JWT, roles
+ADMIN/ANALISTA, CRUD de usuarios, :8081) sin perder lo construido, en
+paquetes pequeños. Rama: `feat/auth-p1-cliente-http`.
+
+Hallazgos de la revisión de ambos backends (relevantes para todo el plan):
+- Security-Module: `POST /auth/login` → `{ token, rol }`; `GET /auth/validate`
+  → `{ userId, email, rol }`; `POST /auth/refresh`; `/usuarios` (crear, listar,
+  detalle, `PATCH .../estado`, `PATCH .../password`). **No hay registro
+  público**: solo un ADMIN crea usuarios (afecta a `/crear-cuenta`, P3/P4).
+  Su `details` de VALIDATION_ERROR es un objeto `{campo: mensaje}`; el del
+  Motor de Scoring es `string[]`.
+- **Motor de Scoring hoy responde `permitAll()` y su CORS solo permite los
+  headers `Content-Type, Accept, X-Trace-Id` (no `Authorization`)**: enviarle
+  el JWT desde el navegador haría fallar el preflight de todas sus rutas.
+  Hay que pedirle al equipo de scoring que agregue `Authorization` a
+  `allowedHeaders` (y `PUT`/`DELETE` si hicieran falta) antes de activar
+  `VITE_SCORING_SENDS_TOKEN=true`.
+
+Plan de paquetes (un PR cada uno):
+  P1 cliente HTTP multi-backend (este PR) · P2 sesión real + login contra
+  Security-Module (conserva el modo demo) · P3 guard de rutas /panel/*,
+  manejo de 401, navegación por rol · P4 módulo Usuarios (ADMIN) + cambio de
+  contraseña · P5 refresh de token, docs/compose/env.
+
+Cambios de P1 (sin cambio de comportamiento visible):
+- `src/api/http.ts` (nuevo): `createHttpClient({ baseUrl, getToken,
+  onUnauthorized, notConfiguredMessage })` — la lógica de `request()` que
+  vivía en `client.ts` (timeout 15 s, errores, JSON seguro), ahora
+  reutilizable por más de un backend, más: cabecera `Authorization: Bearer`
+  si hay token, hook `onUnauthorized` ante 401 con token, soporte de
+  respuestas 204, y normalización de `details` (objeto o array → `string[]`).
+  `ApiRequestError` se movió aquí y ganó `errorCode`.
+- `src/api/token-store.ts` (nuevo): JWT en `sessionStorage` (se descarta al
+  cerrar la pestaña; acota el daño de un robo por XSS), con try/catch por si
+  el almacenamiento está bloqueado.
+- `src/api/client.ts`: ahora instancia `createHttpClient` para el Motor de
+  Scoring y re-exporta `ApiRequestError` (los imports existentes no
+  cambian). Solo envía token si `VITE_SCORING_SENDS_TOKEN=true` (default
+  false, ver el hallazgo de CORS).
+- `.env.example`: documenta `VITE_SCORING_SENDS_TOKEN`.
+
+Verificación: `tsc --noEmit` y `eslint` limpios; build con
+`NITRO_PRESET=node-server` exitoso; las 9 rutas responden `200`; además se
+probó `http.ts` contra un servidor HTTP local con 13 comprobaciones (200,
+Bearer enviado / no enviado, 204, JSON inválido, 401 con y sin token,
+`details` objeto y array, backend sin configurar, cleanBaseUrl, abort) — todas
+pasan. El proyecto aún no tiene un runner de pruebas, así que ese script no
+se commiteó; agregar vitest es candidato a un paquete aparte.
+
+Pendiente de limpieza heredado (no se tocó): issues de SonarCloud en
+`theme-switcher.tsx`, `error-capture.ts` y `lovable-error-reporting.ts`.
