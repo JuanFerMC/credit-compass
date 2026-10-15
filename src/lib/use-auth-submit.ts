@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import type { z } from "zod";
+import { describeAuthError } from "@/lib/auth-errors";
 import { zodErrors } from "@/lib/forms";
 
 // Después de extraer AuthShell, a SonarCloud le seguía sobrando ~3% de
@@ -35,7 +36,7 @@ export function useAuthSubmit<Schema extends z.ZodTypeAny>(
     } catch (error) {
       // Sin este catch, un fallo de auth.* quedaba como promesa rechazada
       // sin manejar y el formulario no mostraba nada.
-      setFormError(error instanceof Error ? error.message : "No fue posible continuar.");
+      setFormError(describeAuthError(error));
     } finally {
       setLoading(false);
     }

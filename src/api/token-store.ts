@@ -1,32 +1,46 @@
-// Almacén del JWT emitido por el Security-Module.
+// Almacén de tokens del Security-Module (guía de integración, sección 8).
 //
-// sessionStorage (no localStorage): el token se descarta al cerrar la
-// pestaña, lo que acota cuánto vive un token robado por XSS. El JWT dura 1 h
-// por defecto, así que no hace falta persistirlo entre sesiones del navegador.
-// Cualquiera puede editar este valor desde las devtools: el backend es quien
-// valida el token en cada petición, el front nunca lo da por bueno.
+//  - access token (15 min): SOLO en memoria. Se pierde al recargar la página
+//    y se recupera renovando con el refresh token (ver auth-client.ts).
+//  - refresh token (7 días, un solo uso): sessionStorage, no localStorage —
+//    con varias pestañas compartiendo localStorage se reutilizaría el mismo
+//    refresh token y el backend lo interpreta como robo (revoca la sesión).
+//
+// Cualquiera puede editar sessionStorage desde las devtools: el backend valida
+// cada token, el front nunca lo da por bueno.
 
-const TOKEN_KEY = "veridica-token";
+const REFRESH_KEY = "veridica-refresh-token";
 
-export function getToken(): string | null {
+let accessToken: string | null = null;
+let refreshTokenInMemory: string | null = null; // respaldo si sessionStorage falla
+
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
+export function getRefreshToken(): string | null {
   try {
-    return window.sessionStorage.getItem(TOKEN_KEY);
+    return window.sessionStorage.getItem(REFRESH_KEY) ?? refreshTokenInMemory;
   } catch {
-    return null; // SSR o almacenamiento bloqueado
+    return refreshTokenInMemory; // SSR o almacenamiento bloqueado
   }
 }
 
-export function setToken(token: string): void {
+export function setTokens(tokens: { token: string; refreshToken: string }): void {
+  accessToken = tokens.token;
+  refreshTokenInMemory = tokens.refreshToken;
   try {
-    window.sessionStorage.setItem(TOKEN_KEY, token);
+    window.sessionStorage.setItem(REFRESH_KEY, tokens.refreshToken);
   } catch {
-    // Sin persistencia: la sesión vive solo mientras no se recargue la página.
+    // Sin persistencia: la sesión vive solo hasta recargar la página.
   }
 }
 
-export function clearToken(): void {
+export function clearTokens(): void {
+  accessToken = null;
+  refreshTokenInMemory = null;
   try {
-    window.sessionStorage.removeItem(TOKEN_KEY);
+    window.sessionStorage.removeItem(REFRESH_KEY);
   } catch {
     // nada que limpiar
   }

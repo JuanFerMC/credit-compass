@@ -1,9 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
   ChevronRight,
   ClipboardCheck,
   Gauge,
+  LogOut,
   Menu,
   Scale,
   Settings2,
@@ -12,6 +13,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { auth, isAuthApiConfigured } from "@/api/auth";
+import { ROLE_LABEL } from "@/api/roles";
+import { useSession } from "@/api/session";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 
 const navItems = [
@@ -146,20 +150,59 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function initialsOf(nombre: string) {
+  const parts = nombre.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : [parts[0] ?? "?"];
+  return letters
+    .map((part) => part?.[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 function UserSummary() {
+  const session = useSession();
+  const navigate = useNavigate();
+
+  async function logout() {
+    await auth.logout();
+    await navigate({ to: "/" });
+  }
+
+  if (session.status !== "authenticated") {
+    return (
+      <div className="border-t border-border p-3">
+        <p className="px-2 py-2 font-mono text-[10px] uppercase text-muted-foreground">
+          {session.status === "restoring" ? "Cargando sesión…" : "Sin sesión"}
+        </p>
+        {session.status === "anonymous" && (
+          <Button asChild variant="secondary" size="sm" className="w-full">
+            <Link to="/iniciar-sesion">Iniciar sesión</Link>
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const { nombre, rol } = session.user;
   return (
     <div className="border-t border-border p-3">
       <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
         <div className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground font-display text-xs font-bold text-background">
-          AR
+          {initialsOf(nombre)}
         </div>
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-semibold">Ana Ríos</p>
+          <p className="truncate text-sm font-semibold">{nombre}</p>
           <p className="truncate font-mono text-[10px] uppercase text-muted-foreground">
-            Analista de crédito
+            {ROLE_LABEL[rol]}
+            {!isAuthApiConfigured && " · demo"}
           </p>
         </div>
       </div>
+      <Button variant="ghost" size="sm" className="mt-1 w-full justify-start" onClick={logout}>
+        <LogOut className="size-4" />
+        Cerrar sesión
+      </Button>
     </div>
   );
 }

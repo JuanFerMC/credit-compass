@@ -48,15 +48,24 @@ export type HttpClientOptions = {
   notConfiguredMessage: string;
   // Si devuelve un token, se envía como `Authorization: Bearer <token>`.
   getToken?: (() => string | null) | undefined;
-  // Se invoca cuando el backend responde 401 a una petición que llevaba token
-  // (token vencido/revocado, usuario desactivado): la sesión ya no sirve.
+  // Ante un 401 a una petición que llevaba token (access token vencido), se
+  // intenta renovar la sesión UNA vez y se reintenta la petición. Debe
+  // devolver true si renovó. Quien lo implemente debe compartir una única
+  // renovación en vuelo (ver auth-client.ts).
+  refreshSession?: (() => Promise<boolean>) | undefined;
+  // Se invoca cuando el 401 no tiene remedio (no hay refreshSession, la
+  // renovación falló, o el reintento volvió a dar 401): la sesión terminó.
   onUnauthorized?: (() => void) | undefined;
 };
 
 export function createHttpClient(options: HttpClientOptions) {
-  const { baseUrl, notConfiguredMessage, getToken, onUnauthorized } = options;
+  const { baseUrl, notConfiguredMessage, getToken, refreshSession, onUnauthorized } = options;
 
-  return async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  async function execute<T>(
+    path: string,
+    init: RequestInit | undefined,
+    retried: boolean,
+  ): Promise<T> {
     if (!baseUrl) throw new ApiRequestError(notConfiguredMessage, 0);
 
     const headers = new Headers(init?.headers);
@@ -83,7 +92,13 @@ export function createHttpClient(options: HttpClientOptions) {
 
     if (!response.ok) {
       const body = (await response.json().catch(() => ({}))) as ErrorBody;
-      if (response.status === 401 && token) onUnauthorized?.();
+      if (response.status === 401 && token) {
+        // Un solo reintento tras renovar: nunca se encadena refresh sobre refresh.
+        if (refreshSession && !retried && (await refreshSession())) {
+          return execute<T>(path, init, true);
+        }
+        onUnauthorized?.();
+      }
       throw new ApiRequestError(
         body.message ?? "No fue posible completar la solicitud",
         response.status,
@@ -104,7 +119,9 @@ export function createHttpClient(options: HttpClientOptions) {
         response.status,
       );
     }
-  };
+  }
+
+  return <T>(path: string, init?: RequestInit) => execute<T>(path, init, false);
 }
 
 // Quita la barra final de una URL base de entorno ("http://x:8080/" -> "http://x:8080").

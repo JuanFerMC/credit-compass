@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiRequestError, cleanBaseUrl, createHttpClient } from "@/api/http";
-import { getToken } from "@/api/token-store";
+import { getAccessToken } from "@/api/token-store";
 
 /*
  * Catálogo cerrado de variables de riesgo (HU3, RF01) y su tipo asociado.
@@ -173,7 +173,7 @@ const request = createHttpClient({
   baseUrl: API_BASE_URL,
   notConfiguredMessage:
     "La API no está configurada. La información de demostración sigue disponible.",
-  getToken: SCORING_SENDS_TOKEN ? getToken : undefined,
+  getToken: SCORING_SENDS_TOKEN ? getAccessToken : undefined,
 });
 
 export const api = {

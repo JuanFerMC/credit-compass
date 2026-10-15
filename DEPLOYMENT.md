@@ -2,7 +2,15 @@
 
 ## Configuración
 
-La aplicación consume el backend mediante `VITE_API_BASE_URL`. La URL se incorpora durante la construcción y debe ser accesible desde el navegador de los usuarios.
+La aplicación consume **dos backends**. Las URLs se incorporan durante la construcción (Vite las inlinea en el bundle) y deben ser accesibles desde el navegador de los usuarios:
+
+| Variable | Backend | Notas |
+|---|---|---|
+| `VITE_API_BASE_URL` | Motor de Scoring (`:8080`) | Vacía = datos de demostración |
+| `VITE_AUTH_BASE_URL` | Security-Module — login, roles, usuarios (`:8081`) | Vacía = **modo demostración**: la sesión se simula en el navegador y no hay control de roles real |
+| `VITE_SCORING_SENDS_TOKEN` | — | `false` por defecto. Con `true` el front envía el JWT también al Motor de Scoring. No activar hasta que scoring permita `Authorization` en su CORS (hoy solo permite `Content-Type`, `Accept`, `X-Trace-Id`) |
+
+El backend de autenticación necesita `CORS_ALLOWED_ORIGINS` con el origen del front, y un primer administrador creado con `INIT_ADMIN_EMAIL` / `INIT_ADMIN_PASSWORD` (mínimo 12 caracteres). No existe registro público: el alta de usuarios la hace un administrador.
 
 ```bash
 cp .env.example .env
@@ -19,14 +27,11 @@ Los comandos soportados actualmente por el frontend son:
 - `POST /api/v1/solicitantes` y `GET /api/v1/solicitantes/documento/{numeroDocumento}`
 - `POST /api/v1/variables-riesgo` y `PATCH /api/v1/variables-riesgo/{idRiesgo}/estado`
 - `POST /api/v1/reglas-scoring` y `PATCH /api/v1/reglas-scoring/{idRegla}`
-- `POST /api/v1/evaluaciones` (HU07 — ver nota abajo)
+- `POST /api/v1/evaluaciones` (HU07)
+
+Contra el Security-Module (`VITE_AUTH_BASE_URL`): `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/validate` y `GET /api/v1/usuarios/{id}`. El access token (15 min) vive solo en memoria; el refresh token (7 días, de un solo uso) en `sessionStorage`.
 
 Las tablas de reglas, evaluaciones, informes y el dashboard siguen mostrando estados informativos porque el backend aún no publica endpoints de consulta (listar) para esos recursos.
-
-> **HU07 (`/api/v1/evaluaciones`) todavía no está mergeada a `main`** en
-> `motor-scoring-crediticio` — vive en la rama
-> `feature/HU07-calcular-score-crediticio`. Contra un backend real en
-> `main`, calcular un score devolverá 404 hasta que esa rama se fusione.
 
 ## Docker Compose
 
