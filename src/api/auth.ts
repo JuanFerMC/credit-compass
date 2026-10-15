@@ -1,83 +1,128 @@
 import { z } from "zod";
+import { ApiRequestError, cleanBaseUrl } from "@/api/http";
+import { createAuthApi } from "@/api/auth-client";
+import { endSession, startSession, type SessionUser } from "@/api/session";
 
-// El backend (motor-scoring-crediticio) todavía no expone endpoints de
-// autenticación — no hay ningún controlador de usuarios/sesión en `main`
-// (ver AGENTS.md). Este módulo simula login/registro localmente
-// (localStorage) para poder mostrar el flujo completo de la UI ahora
-// mismo, con la MISMA forma que src/lib/api.ts (schemas zod + funciones
-// async) para que, cuando el backend publique /api/v1/auth/..., sea un
-// cambio quirúrgico: reemplazar el cuerpo de login()/signup()/logout()
-// por llamadas a `request()` de api.ts, sin tocar las páginas que los usan.
+// Fachada de autenticación que usan las páginas (login, registro, shell).
+//
+//  - Con VITE_AUTH_BASE_URL: habla con el Security-Module real (auth-client.ts).
+//  - Sin ella: modo demostración — sesión simulada en localStorage, igual que
+//    antes de existir el backend, para poder recorrer la UI sin servicios.
+//
+// Las páginas no saben cuál de los dos modos está activo.
 
-const SESSION_KEY = "veridica-session";
+const AUTH_BASE_URL = cleanBaseUrl(import.meta.env["VITE_AUTH_BASE_URL"] as string | undefined);
+export const isAuthApiConfigured = Boolean(AUTH_BASE_URL);
+export const authApi = createAuthApi(AUTH_BASE_URL);
+
+// Política de contraseña del backend (12 a 72): se valida al crear usuario o
+// cambiar contraseña, NO en el login (usuarios con claves antiguas deben poder
+// entrar).
+export const passwordSchema = z
+  .string()
+  .min(12, "Usa al menos 12 caracteres")
+  .max(72, "Usa como máximo 72 caracteres");
 
 export const loginSchema = z.object({
   email: z.string().trim().email("Ingresa un correo válido"),
-  password: z.string().min(6, "Usa al menos 6 caracteres"),
+  password: z.string().min(1, "Ingresa tu contraseña"),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const signupSchema = z.object({
   nombre: z.string().trim().min(2, "Ingresa tu nombre"),
   email: z.string().trim().email("Ingresa un correo válido"),
-  password: z.string().min(6, "Usa al menos 6 caracteres"),
+  password: passwordSchema,
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
-// Se valida al leer: localStorage lo puede editar cualquiera desde las
-// devtools, así que nunca se asume que lo guardado tiene la forma esperada.
-const sessionSchema = z.object({ nombre: z.string(), email: z.string() });
-export type Session = z.infer<typeof sessionSchema>;
+// ---- Modo demostración ----------------------------------------------------
 
-// localStorage puede lanzar (modo privado, cuota llena, políticas del
-// navegador): la sesión demo es "best effort" y no debe romper el login.
-function saveSession(session: Session) {
-  try {
-    window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  } catch {
-    // Sin persistencia: el usuario igual entra al panel esta vez.
-  }
-}
+const DEMO_SESSION_KEY = "veridica-session";
+// Se valida al leer: localStorage lo puede editar cualquiera desde las devtools.
+const demoSessionSchema = z.object({ nombre: z.string(), email: z.string() });
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function demoUser(nombre: string, email: string): SessionUser {
+  // Rol de administrador para que la demo muestre todos los módulos.
+  return { userId: null, nombre, email, rol: "ADMINISTRADOR_RIESGO" };
+}
+
+function saveDemoSession(nombre: string, email: string) {
+  try {
+    window.localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ nombre, email }));
+  } catch {
+    // Sin persistencia: el usuario igual entra al panel esta vez.
+  }
+}
+
+function readDemoSession(): SessionUser | null {
+  try {
+    const raw = window.localStorage.getItem(DEMO_SESSION_KEY);
+    const parsed = raw ? demoSessionSchema.safeParse(JSON.parse(raw)) : null;
+    return parsed?.success ? demoUser(parsed.data.nombre, parsed.data.email) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function demoLogin(input: LoginInput): Promise<SessionUser> {
+  await delay(500);
+  const nombre = input.email.split("@")[0] ?? "Usuario";
+  saveDemoSession(nombre, input.email);
+  const user = demoUser(nombre, input.email);
+  startSession(user);
+  return user;
+}
+
+async function demoSignup(input: SignupInput): Promise<SessionUser> {
+  await delay(500);
+  saveDemoSession(input.nombre, input.email);
+  const user = demoUser(input.nombre, input.email);
+  startSession(user);
+  return user;
+}
+
+function demoLogout() {
+  try {
+    window.localStorage.removeItem(DEMO_SESSION_KEY);
+  } catch {
+    // nada que limpiar
+  }
+  endSession();
+}
+
+// ---- Fachada ---------------------------------------------------------------
+
 export const auth = {
-  // Demo: no valida contra ningún backend, solo simula latencia y guarda
-  // una sesión local. Cuando exista POST /api/v1/auth/login, reemplazar
-  // el cuerpo por `request<Session>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(input) })`.
-  async login(input: LoginInput): Promise<Session> {
-    await delay(500);
-    const session: Session = { nombre: input.email.split("@")[0] ?? "Usuario", email: input.email };
-    saveSession(session);
-    return session;
+  login: (input: LoginInput): Promise<SessionUser> =>
+    isAuthApiConfigured ? authApi.login(input.email, input.password) : demoLogin(input),
+
+  // El Security-Module NO tiene registro público: el alta la hace un
+  // administrador desde el módulo de usuarios.
+  signup: (input: SignupInput): Promise<SessionUser> =>
+    isAuthApiConfigured
+      ? Promise.reject(
+          new ApiRequestError("El registro lo realiza un administrador del sistema.", 0),
+        )
+      : demoSignup(input),
+
+  logout: async (): Promise<void> => {
+    if (isAuthApiConfigured) await authApi.logout();
+    else demoLogout();
   },
-  // Demo: ídem, para cuando exista POST /api/v1/auth/registro.
-  async signup(input: SignupInput): Promise<Session> {
-    await delay(500);
-    const session: Session = { nombre: input.nombre, email: input.email };
-    saveSession(session);
-    return session;
-  },
-  logout() {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(SESSION_KEY);
+
+  // Se llama una vez al arrancar la app (root): decide si hay sesión.
+  restore: async (): Promise<void> => {
+    if (isAuthApiConfigured) {
+      await authApi.restore();
+      return;
     }
-  },
-  getSession(): Session | null {
-    if (typeof window === "undefined") return null;
-    try {
-      const raw = window.localStorage.getItem(SESSION_KEY);
-      const parsed = raw ? sessionSchema.safeParse(JSON.parse(raw)) : null;
-      return parsed?.success ? parsed.data : null;
-    } catch {
-      return null;
-    }
+    const user = readDemoSession();
+    if (user) startSession(user);
+    else endSession();
   },
 };
-
-// true en cuanto exista un endpoint real de autenticación — hoy siempre
-// false, así que las páginas de login/registro muestran el aviso de modo
-// demostrativo (mismo patrón que isApiConfigured en api.ts).
-export const isAuthApiConfigured = false;

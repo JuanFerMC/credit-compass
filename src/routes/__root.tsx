@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { auth } from "../api/auth";
 
 function NotFoundComponent() {
   return (
@@ -129,6 +130,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Decide si hay sesión (refresh token en sessionStorage, o sesión demo). Hasta
+  // que termina, el estado es "restoring" y las rutas protegidas esperan.
+  useEffect(() => {
+    void auth.restore();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

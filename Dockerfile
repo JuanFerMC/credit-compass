@@ -5,6 +5,10 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_AUTH_BASE_URL
+ENV VITE_AUTH_BASE_URL=$VITE_AUTH_BASE_URL
+ARG VITE_SCORING_SENDS_TOKEN=false
+ENV VITE_SCORING_SENDS_TOKEN=$VITE_SCORING_SENDS_TOKEN
 # Sin esto, Nitro construye contra su target por defecto (Cloudflare
 # Workers — ver el comentario en vite.config.ts), que genera un export
 # `fetch` para el runtime de Workers, no un servidor Node. El contenedor

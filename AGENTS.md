@@ -749,3 +749,62 @@ se commiteó; agregar vitest es candidato a un paquete aparte.
 
 Pendiente de limpieza heredado (no se tocó): issues de SonarCloud en
 `theme-switcher.tsx`, `error-capture.ts` y `lovable-error-reporting.ts`.
+
+-- Claude (chat) -- PR "Auth P2: sesión real contra el Security-Module (login, logout, restauración)" --
+Rama: `feat/auth-p2-sesion-real`. Se revisó la versión actualizada del
+Security-Module (main `c33daf0`, incluye `docs/INTEGRACION_FRONTEND.md`) y el
+paquete se implementó contra ese contrato. Cambios del backend respecto de la
+primera revisión: roles renombrados (`ADMINISTRADOR_RIESGO`, `ANALISTA_CREDITO`),
+access token de 15 min + refresh token rotatorio de un solo uso (reutilizarlo
+revoca TODA la sesión) + `POST /auth/logout`, contraseña de 12 a 72 caracteres.
+**El backend NO tiene recuperación de contraseña** (no hay endpoint de
+"olvidé mi contraseña"): hoy solo un administrador puede resetearla
+(`PATCH /usuarios/{id}/password`). La pantalla de recuperación del front
+(P3) lo refleja sin inventar endpoints.
+
+Cambios:
+- `src/api/http.ts`: nuevo `refreshSession` — ante un 401 a una petición con
+  token se renueva la sesión una vez y se reintenta la petición (nunca refresh
+  sobre refresh); `onUnauthorized` solo se invoca si no hubo remedio.
+- `src/api/token-store.ts` (reescrito): access token SOLO en memoria; refresh
+  token en `sessionStorage` (no `localStorage`: con varias pestañas se
+  reutilizaría el mismo refresh y el backend revocaría la sesión).
+- `src/api/roles.ts` (nuevo): roles, mapa `idRol` (1/2, el backend no tiene
+  endpoint de roles), etiquetas, `isAdmin`.
+- `src/api/session.ts` (nuevo): estado observable `restoring | anonymous |
+  authenticated` + hook `useSession()` (`useSyncExternalStore`). El estado
+  inicial es `restoring` en servidor y cliente para que la hidratación coincida.
+- `src/api/auth-client.ts` (nuevo): `createAuthApi(baseUrl)` — login (valida
+  forma de la respuesta y que el rol sea conocido), `GET /auth/validate` +
+  `GET /usuarios/{id}` para userId/nombre, logout (limpia en local primero, el
+  fallo del backend no impide salir), `restore()` (renueva con el refresh token
+  guardado) y **una sola renovación compartida** entre peticiones concurrentes.
+- `src/api/auth.ts` (reescrito): fachada. Con `VITE_AUTH_BASE_URL` usa el
+  backend real; sin ella, **modo demostración** como antes (sesión simulada en
+  `localStorage`, rol administrador para ver todos los módulos). Las páginas no
+  saben qué modo está activo. `passwordSchema` 12–72; el login ya NO exige
+  longitud (usuarios con claves antiguas deben poder entrar). `signup` real
+  responde "lo realiza un administrador".
+- `src/lib/auth-errors.ts` (nuevo): `describeAuthError` — mensajes de UI por
+  `errorCode` (INVALID_CREDENTIALS → "Correo o contraseña incorrectos", etc.).
+- `use-auth-submit.ts` usa `describeAuthError`; `__root.tsx` llama a
+  `auth.restore()` al arrancar; `app-shell.tsx` `UserSummary` muestra el usuario
+  y rol reales (antes un "Ana Ríos" fijo) y un botón **Cerrar sesión**.
+- Config: `VITE_AUTH_BASE_URL` y `VITE_SCORING_SENDS_TOKEN` en `.env`,
+  `.env.example`, `Dockerfile` (ARG/ENV) y `compose.yaml`; `DEPLOYMENT.md`
+  actualizado (tabla de variables; se corrigió una nota obsoleta que decía que
+  HU07 no estaba en `main`).
+- Nota: `.env` ahora trae `VITE_AUTH_BASE_URL=http://localhost:8081`, así que
+  `npm run dev` usa el backend real. Para modo demo, dejarla vacía.
+
+Verificación: `tsc --noEmit` y `eslint` limpios, build con
+`NITRO_PRESET=node-server` exitoso, las 9 rutas responden `200`, el SSR del
+panel muestra "Cargando sesión…". Además, flujo de sesión probado contra un
+**backend falso con el contrato del Security-Module** (15 comprobaciones,
+todas pasan): login incorrecto, login + userId/nombre/rol, 3 peticiones
+concurrentes con 401 → UN solo refresh y las 3 se reintentan, rotación de
+ambos tokens, restore, logout (y con backend caído), refresh reutilizado →
+sesión terminada, rol desconocido rechazado, backend sin configurar.
+**No se pudo probar contra el Security-Module real** (Java/Maven y PostgreSQL
+no están disponibles en este entorno): falta una prueba manual de
+extremo a extremo.
