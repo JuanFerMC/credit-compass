@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import type { z } from "zod";
 import { describeAuthError } from "@/lib/auth-errors";
@@ -13,8 +13,11 @@ export function useAuthSubmit<Schema extends z.ZodTypeAny>(
   schema: Schema,
   action: (data: z.infer<Schema>) => Promise<unknown>,
   emptyForm: z.infer<Schema>,
+  // Adónde ir tras autenticarse (p. ej. la sección que se intentaba abrir).
+  // Quien lo pase debe validarlo con safeRedirect().
+  redirectTo = "/panel",
 ) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,7 @@ export function useAuthSubmit<Schema extends z.ZodTypeAny>(
     setLoading(true);
     try {
       await action(parsed.data);
-      await navigate({ to: "/panel" });
+      router.history.replace(redirectTo);
     } catch (error) {
       // Sin este catch, un fallo de auth.* quedaba como promesa rechazada
       // sin manejar y el formulario no mostraba nada.

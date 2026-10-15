@@ -64,7 +64,7 @@ export function createAuthApi(baseUrl: string | undefined) {
     refreshSession: refreshTokens,
     onUnauthorized: () => {
       clearTokens();
-      endSession();
+      endSession("expired");
     },
   });
 
@@ -114,7 +114,7 @@ export function createAuthApi(baseUrl: string | undefined) {
     // Se limpia primero en local: la UI nunca queda "colgada" si el backend no
     // responde. El endpoint es idempotente y su fallo no debe impedir salir.
     clearTokens();
-    endSession();
+    endSession("logout");
     if (refreshToken) {
       await publicRequest<void>("/api/v1/auth/logout", {
         method: "POST",
@@ -129,8 +129,10 @@ export function createAuthApi(baseUrl: string | undefined) {
   function restore(): Promise<void> {
     if (getSessionState().status === "authenticated") return Promise.resolve();
     restoring ??= (async () => {
-      if (!getRefreshToken() || !(await refreshTokens())) {
-        endSession();
+      const hadRefreshToken = Boolean(getRefreshToken());
+      if (!hadRefreshToken || !(await refreshTokens())) {
+        // Con refresh token guardado que ya no sirve: la sesión "expiró".
+        endSession(hadRefreshToken ? "expired" : null);
         return;
       }
       try {

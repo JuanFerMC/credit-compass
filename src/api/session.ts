@@ -19,9 +19,15 @@ export type SessionUser = {
   rol: Rol;
 };
 
+// Por qué terminó la sesión (solo en "anonymous"):
+//   "logout"  → el usuario salió voluntariamente.
+//   "expired" → el backend la invalidó (refresh vencido/revocado, 401 sin remedio).
+//   null      → nunca hubo sesión (visita nueva, o un intento de login fallido).
+export type EndReason = "logout" | "expired" | null;
+
 export type SessionState =
   | { status: "restoring"; user: null }
-  | { status: "anonymous"; user: null }
+  | { status: "anonymous"; user: null; reason: EndReason }
   | { status: "authenticated"; user: SessionUser };
 
 let state: SessionState = { status: "restoring", user: null };
@@ -36,8 +42,8 @@ export function startSession(user: SessionUser): void {
   emit({ status: "authenticated", user });
 }
 
-export function endSession(): void {
-  emit({ status: "anonymous", user: null });
+export function endSession(reason: EndReason = null): void {
+  emit({ status: "anonymous", user: null, reason });
 }
 
 export function getSessionState(): SessionState {
