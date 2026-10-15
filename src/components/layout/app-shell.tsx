@@ -8,6 +8,7 @@ import {
   Menu,
   Scale,
   Settings2,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const navItems = [
   { to: "/panel/reglas", label: "Reglas de scoring", icon: Scale },
   { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
+  { to: "/panel/usuarios", label: "Usuarios", icon: UserCog },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
