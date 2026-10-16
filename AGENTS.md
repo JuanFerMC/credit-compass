@@ -898,3 +898,40 @@ inesperada); build en modo real y demo: en real el SSR de `/panel/usuarios` NO
 expone la tabla (el guard muestra "Verificando sesión"), en demo se ve completa.
 **No probado en navegador ni contra el Security-Module real** (diálogo,
 mutaciones y redirecciones requieren prueba manual).
+
+-- Claude (chat) -- PR "Auth P5: Mi cuenta + corrección del 401 INVALID_CREDENTIALS" --
+Rama: `feat/auth-p5-mi-cuenta`, **apilada sobre P4** (PR #15, que a su vez está
+apilado sobre P3, PR #14). Mergear en orden: #14 → #15 → este.
+
+**Defecto encontrado y corregido (afecta al cliente HTTP de P1/P2)**: el
+Security-Module responde **401 `INVALID_CREDENTIALS`** cuando la
+`currentPassword` es incorrecta al cambiar la contraseña, con un token
+VÁLIDO. `http.ts` trataba todo 401 con token como "access token vencido":
+renovaba la sesión, reintentaba y, al volver a fallar, **cerraba la sesión y
+borraba los tokens** — el usuario salía de la app por equivocarse al teclear
+su contraseña actual. Un access token vencido responde `UNAUTHORIZED`; ahora
+`INVALID_CREDENTIALS` no se trata como sesión vencida. Se reprodujo primero
+con una prueba que fallaba (sesión cerrada, tokens borrados, refresh +
+reintento) y luego se corrigió (7/7).
+
+Cambios:
+- `src/routes/panel/cuenta.tsx` (nuevo; todos los roles): perfil (nombre,
+  correo, rol) y cambio de la contraseña propia. El **analista** ingresa la
+  contraseña actual (el backend la verifica); el **administrador** no (el
+  backend no se la pide). Una actual incorrecta se muestra como error del
+  campo ("La contraseña actual no es correcta.") en vez del mensaje genérico
+  de login. Aviso honesto tras guardar: el backend no cierra las otras
+  sesiones, siguen activas hasta 7 días. En demostración, sin sesión, ofrece
+  iniciar sesión.
+- `src/api/users-client.ts`: `makeChangePasswordSchema(requireCurrent)` (nueva
+  distinta de la actual solo para analista, confirmación, 12–72) y
+  `changePassword(id, new, current?)` (el cuerpo lleva `currentPassword` solo
+  si se pasa).
+- `app-shell.tsx`: enlace "Mi cuenta" en el resumen de usuario.
+
+Verificación: `tsc` y `eslint` limpios; 61 comprobaciones unitarias (15 sesión
++ 11 guard + 17 usuarios + 7 contraseña incorrecta/401 + 11 cuenta), incluido
+el cuerpo exacto por rol y que una contraseña actual incorrecta NO cierra la
+sesión; build real y demo; las 11 rutas responden `200`; en real el SSR de
+`/panel/cuenta` no expone el formulario. **No probado en navegador ni contra el
+Security-Module real.**

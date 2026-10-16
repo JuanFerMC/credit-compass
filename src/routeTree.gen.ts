@@ -15,6 +15,7 @@ import { Route as IniciarSesionRouteImport } from './routes/iniciar-sesion'
 import { Route as PanelRouteRouteImport } from './routes/panel/route'
 import { Route as RecuperarCuentaRouteImport } from './routes/recuperar-cuenta'
 import { Route as PanelIndexRouteImport } from './routes/panel/index'
+import { Route as PanelCuentaRouteImport } from './routes/panel/cuenta'
 import { Route as PanelEvaluacionesRouteImport } from './routes/panel/evaluaciones'
 import { Route as PanelInformesRouteImport } from './routes/panel/informes'
 import { Route as PanelReglasRouteImport } from './routes/panel/reglas'
@@ -50,6 +51,11 @@ const RecuperarCuentaRoute = RecuperarCuentaRouteImport.update({
 const PanelIndexRoute = PanelIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PanelRouteRoute,
+} as any)
+const PanelCuentaRoute = PanelCuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
   getParentRoute: () => PanelRouteRoute,
 } as any)
 const PanelEvaluacionesRoute = PanelEvaluacionesRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/crear-cuenta': typeof CrearCuentaRoute
   '/iniciar-sesion': typeof IniciarSesionRoute
   '/recuperar-cuenta': typeof RecuperarCuentaRoute
+  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/crear-cuenta': typeof CrearCuentaRoute
   '/iniciar-sesion': typeof IniciarSesionRoute
   '/recuperar-cuenta': typeof RecuperarCuentaRoute
+  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/crear-cuenta': typeof CrearCuentaRoute
   '/iniciar-sesion': typeof IniciarSesionRoute
   '/recuperar-cuenta': typeof RecuperarCuentaRoute
+  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/crear-cuenta'
     | '/iniciar-sesion'
     | '/recuperar-cuenta'
+    | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
     | '/panel/reglas'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/crear-cuenta'
     | '/iniciar-sesion'
     | '/recuperar-cuenta'
+    | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
     | '/panel/reglas'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/crear-cuenta'
     | '/iniciar-sesion'
     | '/recuperar-cuenta'
+    | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
     | '/panel/reglas'
@@ -221,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelIndexRouteImport
       parentRoute: typeof PanelRouteRoute
     }
+    '/panel/cuenta': {
+      id: '/panel/cuenta'
+      path: '/cuenta'
+      fullPath: '/panel/cuenta'
+      preLoaderRoute: typeof PanelCuentaRouteImport
+      parentRoute: typeof PanelRouteRoute
+    }
     '/panel/evaluaciones': {
       id: '/panel/evaluaciones'
       path: '/evaluaciones'
@@ -267,6 +286,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface PanelRouteRouteChildren {
+  PanelCuentaRoute: typeof PanelCuentaRoute
   PanelEvaluacionesRoute: typeof PanelEvaluacionesRoute
   PanelInformesRoute: typeof PanelInformesRoute
   PanelReglasRoute: typeof PanelReglasRoute
@@ -277,6 +297,7 @@ interface PanelRouteRouteChildren {
 }
 
 const PanelRouteRouteChildren: PanelRouteRouteChildren = {
+  PanelCuentaRoute: PanelCuentaRoute,
   PanelEvaluacionesRoute: PanelEvaluacionesRoute,
   PanelInformesRoute: PanelInformesRoute,
   PanelReglasRoute: PanelReglasRoute,

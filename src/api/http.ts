@@ -92,7 +92,15 @@ export function createHttpClient(options: HttpClientOptions) {
 
     if (!response.ok) {
       const body = (await response.json().catch(() => ({}))) as ErrorBody;
-      if (response.status === 401 && token) {
+      // Un 401 puede significar dos cosas distintas:
+      //  - UNAUTHORIZED: el access token falta o venció → hay que renovar.
+      //  - INVALID_CREDENTIALS: el token es VÁLIDO y falló una credencial de
+      //    negocio (p. ej. `currentPassword` incorrecta al cambiar la
+      //    contraseña). Tratarlo como sesión vencida cerraría la sesión del
+      //    usuario por equivocarse al teclear su contraseña actual.
+      const sessionExpired =
+        response.status === 401 && token && body.errorCode !== "INVALID_CREDENTIALS";
+      if (sessionExpired) {
         // Un solo reintento tras renovar: nunca se encadena refresh sobre refresh.
         if (refreshSession && !retried && (await refreshSession())) {
           return execute<T>(path, init, true);
