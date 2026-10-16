@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Eye, KeyRound, RefreshCw, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { Eye, KeyRound, RefreshCw, Search, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { ROLE_LABEL, ROLES, type Rol } from "@/api/roles";
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { isAuthApiConfigured } from "@/api/auth";
 import { ApiRequestError } from "@/api/http";
 import {
@@ -59,6 +59,9 @@ function UsersPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [detailUser, setDetailUser] = useState<ManagedUser | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("TODOS");
+  const [statusFilter, setStatusFilter] = useState("TODOS");
 
   const loadUsers = useCallback(async () => {
     if (!isAuthApiConfigured) return;
@@ -80,6 +83,22 @@ function UsersPage() {
   useEffect(() => {
     void loadUsers();
   }, [loadUsers]);
+
+  const filteredUsers = useMemo(() => {
+    const term = searchTerm.trim().toLocaleLowerCase("es-CO");
+    return users.filter((user) => {
+      const matchesSearch =
+        !term ||
+        user.nombre.toLocaleLowerCase("es-CO").includes(term) ||
+        user.email.toLocaleLowerCase("es-CO").includes(term) ||
+        String(user.id).includes(term);
+      const matchesRole = roleFilter === "TODOS" || user.rolNombre === roleFilter;
+      const matchesStatus =
+        statusFilter === "TODOS" ||
+        (statusFilter === "ACTIVOS" ? user.activo : !user.activo);
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, searchTerm, roleFilter, statusFilter]);
 
   async function openDetails(user: ManagedUser) {
     setDetailOpen(true);
@@ -130,6 +149,14 @@ function UsersPage() {
   }
 
   async function toggleStatus(user: ManagedUser) {
+    const nextState = user.activo ? "desactivar" : "activar";
+    if (
+      !window.confirm(
+        `¿Seguro que deseas ${nextState} la cuenta de ${user.nombre}?`,
+      )
+    ) {
+      return;
+    }
     setError("");
     setNotice("");
     try {
@@ -158,6 +185,13 @@ function UsersPage() {
       return;
     }
     if (resetId === null) return;
+    if (
+      !window.confirm(
+        "¿Confirmas el restablecimiento de la contraseña? El usuario deberá recibir la nueva clave por un canal seguro.",
+      )
+    ) {
+      return;
+    }
 
     setSaving(true);
     try {
@@ -303,12 +337,65 @@ function UsersPage() {
       </Panel>
 
       <Panel className="overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-border p-5">
-          <Users className="size-5 text-primary" />
-          <div>
-            <h2 className="font-display text-lg font-bold">Usuarios registrados</h2>
-            <p className="text-sm text-muted-foreground">{users.length} cuenta(s) cargadas</p>
+        <div className="flex flex-col gap-4 border-b border-border p-5">
+          <div className="flex items-center gap-3">
+            <Users className="size-5 text-primary" aria-hidden="true" />
+            <div>
+              <h2 className="font-display text-lg font-bold">Usuarios registrados</h2>
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {filteredUsers.length} de {users.length} cuenta(s)
+              </p>
+            </div>
           </div>
+          {isAuthApiConfigured && users.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(11rem,0.45fr)_minmax(10rem,0.4fr)]">
+              <div className="relative">
+                <label htmlFor="users-search" className="mb-1.5 block text-sm font-semibold">
+                  Buscar usuarios
+                </label>
+                <Search className="pointer-events-none absolute left-3 top-[2.55rem] size-4 text-muted-foreground" aria-hidden="true" />
+                <input
+                  id="users-search"
+                  type="search"
+                  className="form-control pl-9"
+                  placeholder="Nombre, correo o identificador"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="users-role-filter" className="mb-1.5 block text-sm font-semibold">
+                  Filtrar por rol
+                </label>
+                <select
+                  id="users-role-filter"
+                  className="form-control"
+                  value={roleFilter}
+                  onChange={(event) => setRoleFilter(event.target.value)}
+                >
+                  <option value="TODOS">Todos los roles</option>
+                  {ROLES.map((rol) => (
+                    <option key={rol} value={rol}>{ROLE_LABEL[rol]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="users-status-filter" className="mb-1.5 block text-sm font-semibold">
+                  Filtrar por estado
+                </label>
+                <select
+                  id="users-status-filter"
+                  className="form-control"
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                >
+                  <option value="TODOS">Todos los estados</option>
+                  <option value="ACTIVOS">Activos</option>
+                  <option value="INACTIVOS">Inactivos</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
         {!isAuthApiConfigured ? (
           <p className="p-5 text-sm text-muted-foreground">
@@ -331,7 +418,13 @@ function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {users.map((user) => (
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                      No hay usuarios que coincidan con los filtros seleccionados.
+                    </td>
+                  </tr>
+                ) : filteredUsers.map((user) => (
                   <tr key={user.id} className="align-top">
                     <td className="px-4 py-4">
                       <p className="font-semibold">{user.nombre}</p>
