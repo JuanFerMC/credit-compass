@@ -1,5 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ClipboardCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
+import {
+  ArrowRight,
+  ClipboardCheck,
+  Settings2,
+  Scale,
+  TrendingDown,
+  TrendingUp,
+  UserCog,
+  Users,
+} from "lucide-react";
+import { isAdmin } from "@/api/roles";
+import { useRol } from "@/api/use-rol";
 import { Button } from "@/components/ui/button";
 import { DemoNotice, PageHeader, Panel } from "@/components/shared/page";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -51,12 +62,18 @@ const distribution = [
 ];
 
 function Dashboard() {
+  const admin = isAdmin(useRol());
+
   return (
     <>
       <PageHeader
         eyebrow="Panel general"
-        title="Resumen de cartera"
-        description="Una vista clara de las evaluaciones, el riesgo y el comportamiento reciente del portafolio."
+        title={admin ? "Resumen de cartera" : "Panel de análisis"}
+        description={
+          admin
+            ? "Supervisa la cartera y accede a la configuración del motor de scoring."
+            : "Consulta solicitantes, ejecuta evaluaciones y revisa los resultados de riesgo."
+        }
         action={
           <Button asChild>
             <Link to="/panel/evaluaciones">
@@ -67,6 +84,63 @@ function Dashboard() {
         }
       />
       <DemoNotice />
+      <Panel className="p-5">
+        <div className="mb-4">
+          <h2 className="font-display text-lg font-bold">
+            {admin ? "Accesos de administración" : "Flujo de trabajo"}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {admin
+              ? "Gestiona las cuentas y ajusta los parámetros que determinan el scoring."
+              : "Accede a las tareas habituales de análisis de crédito."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {admin ? (
+            <>
+              <Button asChild variant="outline">
+                <Link to="/panel/usuarios">
+                  <UserCog className="size-4" />
+                  Gestionar usuarios
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/panel/variables">
+                  <Settings2 className="size-4" />
+                  Variables de riesgo
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/panel/reglas">
+                  <Scale className="size-4" />
+                  Reglas de scoring
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="outline">
+                <Link to="/panel/solicitantes">
+                  <Users className="size-4" />
+                  Consultar solicitantes
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/panel/evaluaciones">
+                  <ClipboardCheck className="size-4" />
+                  Evaluar crédito
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/panel/informes">
+                  <TrendingUp className="size-4" />
+                  Consultar informes
+                </Link>
+              </Button>
+            </>
+          )}
+        </div>
+      </Panel>
       <section
         className="grid grid-cols-2 gap-3 lg:grid-cols-4"
         aria-label="Indicadores principales"
