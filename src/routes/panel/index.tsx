@@ -62,7 +62,8 @@ const distribution = [
 ];
 
 function Dashboard() {
-  const admin = isAdmin(useRol());
+  const rol = useRol();
+  const admin = isAdmin(rol);
 
   return (
     <>
