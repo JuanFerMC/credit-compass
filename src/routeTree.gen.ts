@@ -405,8 +405,6 @@ export interface FileRoutesByFullPath {
   '/panel/variables': typeof PanelVariablesRoute
   '/panel/usuarios': typeof PanelUsuariosRoute
   '/panel/cuenta': typeof PanelCuentaRoute
-  '/panel/usuarios': typeof PanelUsuariosRoute
-  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/': typeof PanelIndexRoute
 }
 export interface FileRoutesByTo {
@@ -419,6 +417,8 @@ export interface FileRoutesByTo {
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
   '/panel/variables': typeof PanelVariablesRoute
+  '/panel/usuarios': typeof PanelUsuariosRoute
+  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel': typeof PanelIndexRoute
 }
 export interface FileRoutesById {
@@ -433,6 +433,8 @@ export interface FileRoutesById {
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
   '/panel/variables': typeof PanelVariablesRoute
+  '/panel/usuarios': typeof PanelUsuariosRoute
+  '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/': typeof PanelIndexRoute
 }
 export interface FileRouteTypes {
@@ -462,6 +464,8 @@ export interface FileRouteTypes {
     | '/panel/reglas'
     | '/panel/solicitantes'
     | '/panel/variables'
+    | '/panel/usuarios'
+    | '/panel/cuenta'
     | '/panel'
   id:
     | '__root__'
@@ -475,6 +479,8 @@ export interface FileRouteTypes {
     | '/panel/reglas'
     | '/panel/solicitantes'
     | '/panel/variables'
+    | '/panel/usuarios'
+    | '/panel/cuenta'
     | '/panel/'
   fileRoutesById: FileRoutesById
 }
