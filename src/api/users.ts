@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { authApi } from "@/api/auth";
 import { passwordSchema } from "@/api/auth";
-import { ROLE_ID, ROLES, type Rol } from "@/api/roles";
+import { ROLE_ID, ROLES } from "@/api/roles";
 
 export const createManagedUserSchema = z.object({
   nombre: z
@@ -73,7 +73,7 @@ export const usersApi = {
     const { rol, ...user } = input;
     const response = await authApi.request<unknown>("/api/v1/usuarios", {
       method: "POST",
-      body: JSON.stringify({ ...user, idRol: ROLE_ID[rol as Rol] }),
+      body: JSON.stringify({ ...user, idRol: ROLE_ID[rol] }),
     });
     return parseUser(response);
   },
