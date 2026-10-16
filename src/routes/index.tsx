@@ -46,6 +46,7 @@ function LandingPage() {
   const demo = !isAuthApiConfigured;
   return (
     <div className="flex min-h-screen flex-col">
+      <a href="#contenido-principal" className="sr-only z-50 rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar al contenido principal</a>
       <PublicHeader
         actions={
           <>
@@ -61,9 +62,9 @@ function LandingPage() {
         }
       />
 
-      <main className="flex-1">
+      <main id="contenido-principal" className="flex-1">
         {/* Hero */}
-        <section className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
+        <section className="mx-auto w-full max-w-screen-2xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-24">
           <p className="font-mono text-[11px] uppercase text-muted-foreground">
             Scoring crediticio
           </p>
@@ -99,12 +100,12 @@ function LandingPage() {
         </section>
 
         {/* Qué hacemos */}
-        <section className="mx-auto max-w-6xl px-6 py-12">
+        <section className="mx-auto w-full max-w-screen-2xl px-5 py-10 sm:px-8 sm:py-12 lg:px-12">
           <h2 className="font-display text-2xl font-bold">Qué hacemos</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Un módulo por cada paso del proceso de evaluación crediticia.
           </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {features.map(({ icon: Icon, title, text }) => (
               <Panel key={title} className="p-5">
                 <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-primary">
@@ -119,7 +120,7 @@ function LandingPage() {
 
         {/* Quiénes somos */}
         <section className="mx-auto max-w-6xl px-6 py-12">
-          <Panel className="grid gap-6 p-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-8">
+          <Panel className="grid gap-6 p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-8 lg:p-10">
             <span className="grid size-12 place-items-center rounded-lg bg-accent-soft text-primary">
               <ShieldCheck className="size-6" />
             </span>
@@ -140,7 +141,7 @@ function LandingPage() {
 
         {/* CTA final */}
         <section className="mx-auto max-w-6xl px-6 py-12">
-          <Panel className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <Panel className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8 lg:p-10">
             <div>
               <h2 className="font-display text-xl font-bold">
                 {demo ? "Explora el panel ahora" : "Accede a tu panel"}
