@@ -1,3 +1,4 @@
+import type { User } from "@/api/users-client";
 export const evaluations = [
   {
     id: 1048,
@@ -151,3 +152,35 @@ export const scoringRules = [
     active: false,
   },
 ] as const;
+
+// Usuarios de ejemplo (modo demostración, sin Security-Module). Misma forma que
+// la respuesta real de GET /usuarios.
+export const demoUsers: User[] = [
+  {
+    id: 1,
+    nombre: "Ana Ríos",
+    email: "ana.rios@veridica.demo",
+    rolNombre: "ADMINISTRADOR_RIESGO",
+    activo: true,
+    fechaCreacion: "2026-09-01T09:00:00",
+    fechaModificacion: null,
+  },
+  {
+    id: 2,
+    nombre: "Carlos Mejía",
+    email: "carlos.mejia@veridica.demo",
+    rolNombre: "ANALISTA_CREDITO",
+    activo: true,
+    fechaCreacion: "2026-09-14T11:30:00",
+    fechaModificacion: null,
+  },
+  {
+    id: 3,
+    nombre: "Laura Pardo",
+    email: "laura.pardo@veridica.demo",
+    rolNombre: "ANALISTA_CREDITO",
+    activo: false,
+    fechaCreacion: "2026-09-20T15:10:00",
+    fechaModificacion: "2026-10-02T08:45:00",
+  },
+];

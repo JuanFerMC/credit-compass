@@ -19,6 +19,7 @@ import { Route as PanelEvaluacionesRouteImport } from './routes/panel/evaluacion
 import { Route as PanelInformesRouteImport } from './routes/panel/informes'
 import { Route as PanelReglasRouteImport } from './routes/panel/reglas'
 import { Route as PanelSolicitantesRouteImport } from './routes/panel/solicitantes'
+import { Route as PanelUsuariosRouteImport } from './routes/panel/usuarios'
 import { Route as PanelVariablesRouteImport } from './routes/panel/variables'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const PanelSolicitantesRoute = PanelSolicitantesRouteImport.update({
   path: '/solicitantes',
   getParentRoute: () => PanelRouteRoute,
 } as any)
+const PanelUsuariosRoute = PanelUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => PanelRouteRoute,
+} as any)
 const PanelVariablesRoute = PanelVariablesRouteImport.update({
   id: '/variables',
   path: '/variables',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/usuarios': typeof PanelUsuariosRoute
   '/panel/variables': typeof PanelVariablesRoute
   '/panel/': typeof PanelIndexRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/usuarios': typeof PanelUsuariosRoute
   '/panel/variables': typeof PanelVariablesRoute
   '/panel': typeof PanelIndexRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/panel/informes': typeof PanelInformesRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
+  '/panel/usuarios': typeof PanelUsuariosRoute
   '/panel/variables': typeof PanelVariablesRoute
   '/panel/': typeof PanelIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/panel/informes'
     | '/panel/reglas'
     | '/panel/solicitantes'
+    | '/panel/usuarios'
     | '/panel/variables'
     | '/panel/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/panel/informes'
     | '/panel/reglas'
     | '/panel/solicitantes'
+    | '/panel/usuarios'
     | '/panel/variables'
     | '/panel'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/panel/informes'
     | '/panel/reglas'
     | '/panel/solicitantes'
+    | '/panel/usuarios'
     | '/panel/variables'
     | '/panel/'
   fileRoutesById: FileRoutesById
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelSolicitantesRouteImport
       parentRoute: typeof PanelRouteRoute
     }
+    '/panel/usuarios': {
+      id: '/panel/usuarios'
+      path: '/usuarios'
+      fullPath: '/panel/usuarios'
+      preLoaderRoute: typeof PanelUsuariosRouteImport
+      parentRoute: typeof PanelRouteRoute
+    }
     '/panel/variables': {
       id: '/panel/variables'
       path: '/variables'
@@ -252,6 +271,7 @@ interface PanelRouteRouteChildren {
   PanelInformesRoute: typeof PanelInformesRoute
   PanelReglasRoute: typeof PanelReglasRoute
   PanelSolicitantesRoute: typeof PanelSolicitantesRoute
+  PanelUsuariosRoute: typeof PanelUsuariosRoute
   PanelVariablesRoute: typeof PanelVariablesRoute
   PanelIndexRoute: typeof PanelIndexRoute
 }
@@ -261,6 +281,7 @@ const PanelRouteRouteChildren: PanelRouteRouteChildren = {
   PanelInformesRoute: PanelInformesRoute,
   PanelReglasRoute: PanelReglasRoute,
   PanelSolicitantesRoute: PanelSolicitantesRoute,
+  PanelUsuariosRoute: PanelUsuariosRoute,
   PanelVariablesRoute: PanelVariablesRoute,
   PanelIndexRoute: PanelIndexRoute,
 }

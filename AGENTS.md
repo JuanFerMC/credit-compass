@@ -856,3 +856,45 @@ la landing/registro conservan su comportamiento. 26 comprobaciones unitarias
 (15 de sesión + 11 de guard/permisos/redirect). **No probado en un navegador**:
 las redirecciones del lado del cliente (efectos de React) no se ejercitaron;
 requieren prueba manual con el backend real.
+
+-- Claude (chat) -- PR "Auth P4: módulo de Usuarios (administrador)" --
+Rama: `feat/auth-p4-modulo-usuarios`, **apilada sobre P3** (PR #14, aún sin
+mergear al momento de abrirlo: el PR apunta a la rama de P3 y GitHub lo
+reorienta a `main` cuando P3 se mergea).
+
+Cambios:
+- `src/routes/panel/usuarios.tsx` (nuevo; solo `ADMINISTRADOR_RIESGO`, vía la
+  tabla de `permissions.ts` de P3 + ítem "Usuarios" en el menú): lista de
+  usuarios (`GET /usuarios`, con TanStack Query), alta (`POST /usuarios`),
+  activar/desactivar (`PATCH .../estado`) y restablecer contraseña de otro
+  usuario (`PATCH .../password`, en un diálogo, sin `currentPassword`). Estados
+  de carga / error con "Reintentar". En modo demostración trabaja sobre una
+  copia local de `demoUsers` (nada se persiste).
+- `src/api/users-client.ts` (nuevo, lógica pura): esquemas zod (`userSchema` —
+  la respuesta se valida, no se confía en su forma—, `createUserSchema`,
+  `resetPasswordSchema` con confirmación) y `createUsersApi(request)`.
+  `src/api/users.ts` la instancia con el cliente autenticado. Se separó así
+  para poder probar el código REAL contra un servidor falso (el primer intento
+  de prueba reimplementaba las llamadas en vez de ejercitarlas; se detectó y se
+  rehízo).
+- `src/api/password-schema.ts` (nuevo): `passwordSchema` (12–72) salió de
+  `auth.ts` a un módulo neutro; lo usan `auth.ts` (registro demo) y usuarios.
+- `idRol` numérico (el backend no tiene endpoint de roles): el formulario usa el
+  nombre del rol y `ROLE_ID` lo convierte al enviar.
+- **Decisión propia**: el botón "Desactivar" está deshabilitado en la fila del
+  propio usuario ("(tú)"). El backend NO lo impide y, al desactivar, invalida
+  sus tokens de inmediato: un administrador (el único, en una base nueva) podría
+  quedarse sin forma de volver a entrar.
+- `StatusDot` acepta etiquetas (`Activo`/`Inactivo` para usuarios).
+- Se mantienen los avisos del backend: al desactivar, sus sesiones dejan de
+  renovarse; al restablecer una contraseña, las sesiones ya abiertas siguen
+  hasta 7 días (limitación documentada del Security-Module).
+
+Verificación: `tsc` y `eslint` limpios; 43 comprobaciones unitarias (15 sesión +
+11 guard + 17 usuarios: GET/POST/PATCH reales con `idRol` numérico, 204,
+`activo` booleano, límites de contraseña 11/12/72/73, confirmación distinta,
+403 → mensaje y sin cerrar sesión, 409 `DUPLICATE_EMAIL`, respuestas con forma
+inesperada); build en modo real y demo: en real el SSR de `/panel/usuarios` NO
+expone la tabla (el guard muestra "Verificando sesión"), en demo se ve completa.
+**No probado en navegador ni contra el Security-Module real** (diálogo,
+mutaciones y redirecciones requieren prueba manual).

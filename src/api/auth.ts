@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ApiRequestError, cleanBaseUrl } from "@/api/http";
 import { createAuthApi } from "@/api/auth-client";
+import { passwordSchema } from "@/api/password-schema";
 import { endSession, startSession, type SessionUser } from "@/api/session";
 
 // Fachada de autenticación que usan las páginas (login, registro, shell).
@@ -14,14 +15,6 @@ import { endSession, startSession, type SessionUser } from "@/api/session";
 const AUTH_BASE_URL = cleanBaseUrl(import.meta.env["VITE_AUTH_BASE_URL"] as string | undefined);
 export const isAuthApiConfigured = Boolean(AUTH_BASE_URL);
 export const authApi = createAuthApi(AUTH_BASE_URL);
-
-// Política de contraseña del backend (12 a 72): se valida al crear usuario o
-// cambiar contraseña, NO en el login (usuarios con claves antiguas deben poder
-// entrar).
-export const passwordSchema = z
-  .string()
-  .min(12, "Usa al menos 12 caracteres")
-  .max(72, "Usa como máximo 72 caracteres");
 
 export const loginSchema = z.object({
   email: z.string().trim().email("Ingresa un correo válido"),
