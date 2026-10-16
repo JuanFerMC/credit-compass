@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
 import { Panel, Field } from "@/components/shared/page";
+import { isAuthApiConfigured } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { fieldA11y } from "@/lib/forms";
 
@@ -44,10 +45,12 @@ export function AuthShell({
               {icon}
             </span>
             <h1 className="mt-3 font-display text-xl font-bold">{title}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Modo demostrativo: no hay backend de autenticación todavía, esto solo simula tu sesión
-              en este navegador.
-            </p>
+            {!isAuthApiConfigured && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Modo demostrativo: no hay backend de autenticación todavía, esto solo simula tu sesión
+                en este navegador.
+              </p>
+            )}
           </div>
           {children}
           <p className="mt-5 text-center text-sm text-muted-foreground">
