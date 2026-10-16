@@ -1,3 +1,6 @@
+
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=JuanFerMC_credit-compass&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JuanFerMC_credit-compass)
+
 # Credit-Compass (Veridica)
 
 Frontend web para el sistema de scoring crediticio. Permite trabajar con solicitantes, variables de riesgo, reglas, evaluaciones e informes, y ofrece una experiencia diferenciada para **administradores de riesgo** y **analistas de crédito**.
