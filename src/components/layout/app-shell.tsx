@@ -166,7 +166,6 @@ function initialsOf(nombre: string) {
     .toUpperCase();
 }
 
-
 function HeaderAccountActions() {
   const session = useSession();
   const navigate = useNavigate();
