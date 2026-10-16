@@ -808,3 +808,51 @@ sesión terminada, rol desconocido rechazado, backend sin configurar.
 **No se pudo probar contra el Security-Module real** (Java/Maven y PostgreSQL
 no están disponibles en este entorno): falta una prueba manual de
 extremo a extremo.
+
+-- Claude (chat) -- PR "Auth P3: guard de /panel/*, navegación por rol, recuperar acceso" --
+Rama: `feat/auth-p3-guard-y-roles` (sobre P2, ya mergeado).
+
+Cambios:
+- `src/api/session.ts`: el estado `anonymous` guarda la razón del cierre
+  (`logout` | `expired` | `null`). `onUnauthorized` y un refresh guardado que ya
+  no sirve → `expired`; salir voluntariamente → `logout`.
+- `src/api/permissions.ts` (nuevo): tabla de qué rol abre cada sección
+  (`canAccess`). **Decisión de producto por confirmar**: el administrador
+  configura el modelo (variables y reglas, y más adelante usuarios); el analista
+  opera (solicitantes, evaluaciones, informes). Es SOLO UX: el Security-Module
+  hace cumplir sus permisos con 403 y el Motor de Scoring hoy no valida roles
+  (`permitAll`). Cambiarlo es editar esa tabla.
+- `src/api/guard.ts` (nuevo): `decideGuard()` pura (allow / loading / login /
+  home / forbidden) y `safeRedirect()` (solo rutas internas de `/panel`).
+- `src/routes/panel/route.tsx`: el layout aplica el guard. Mientras se
+  restaura la sesión muestra "Verificando sesión…" (nunca el panel ni una
+  redirección prematura; en SSR la sesión siempre es `restoring`, así el panel
+  protegido jamás se renderiza en el servidor). Sin sesión → `/iniciar-sesion`
+  con `redirect` (y `motivo=expirada` si corresponde); logout → landing; rol
+  sin permiso → pantalla "No tienes permisos" dentro del shell (un 403 no
+  cierra la sesión). **En modo demostración el panel sigue abierto.**
+- `src/api/use-rol.ts` + `app-shell.tsx`: la navegación solo muestra las
+  secciones que el rol puede abrir.
+- `/iniciar-sesion`: `validateSearch` (`redirect` validado, `motivo`), aviso
+  "Tu sesión terminó", vuelve a la sección que se intentaba abrir y, si ya hay
+  sesión, redirige. `useAuthSubmit` acepta un destino y usa `history.replace`.
+- Sin registro público (backend real): `/crear-cuenta` informa que el alta la
+  hace un administrador; la landing deja de ofrecer "Crear cuenta" y el
+  recorrido demo; el login ofrece "¿Olvidaste tu contraseña?".
+- `/recuperar-cuenta` (nueva): explica el proceso real (restablece un
+  administrador). No simula un envío de correo porque el backend no tiene ese
+  endpoint; cuando exista, aquí va el formulario.
+- `routeTree.gen.ts` regenerado por el build (ruta nueva).
+- Hallazgo propio durante las pruebas: `safeRedirect` dejaba pasar
+  `/panel//evil.com` y `/panel/../x` (segmentos vacíos o solo puntos). Se
+  endureció y se cubrió con pruebas.
+
+Verificación: `tsc` y `eslint` limpios; build en AMBOS modos (real y demo) y
+comprobación del HTML renderizado por el servidor: en real, `/panel` muestra
+"Verificando sesión" y no contiene el panel, la landing no ofrece registro,
+`/crear-cuenta` informa que no hay registro público, `?motivo=expirada` muestra
+el aviso y un `redirect` malicioso no rompe; en demo, el panel sigue abierto y
+la landing/registro conservan su comportamiento. 26 comprobaciones unitarias
+(15 de sesión + 11 de guard/permisos/redirect). **No probado en un navegador**:
+las redirecciones del lado del cliente (efectos de React) no se ejercitaron;
+requieren prueba manual con el backend real.

@@ -15,7 +15,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { auth, isAuthApiConfigured } from "@/api/auth";
 import { ROLE_LABEL } from "@/api/roles";
+import { canAccess } from "@/api/permissions";
 import { useSession } from "@/api/session";
+import { useRol } from "@/api/use-rol";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 
 const navItems = [
@@ -29,9 +31,11 @@ const navItems = [
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const rol = useRol();
+  const visibleItems = navItems.filter(({ to }) => rol !== null && canAccess(rol, to));
   return (
     <nav aria-label="Navegación principal" className="mt-2 flex-1 space-y-1 px-3">
-      {navItems.map(({ to, label, icon: Icon }) => {
+      {visibleItems.map(({ to, label, icon: Icon }) => {
         const active = to === "/panel" ? pathname === "/panel" : pathname.startsWith(to);
         return (
           <Link

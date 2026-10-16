@@ -3,13 +3,37 @@ import { UserPlus } from "lucide-react";
 import { AuthShell, EmailField, FormError } from "@/components/shared/auth-shell";
 import { Field } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
-import { auth, signupSchema } from "@/api/auth";
+import { auth, isAuthApiConfigured, signupSchema } from "@/api/auth";
 import { fieldA11y } from "@/lib/forms";
 import { useAuthSubmit } from "@/lib/use-auth-submit";
 
 export const Route = createFileRoute("/crear-cuenta")({
-  component: SignupPage,
+  component: SignupRoute,
 });
+
+// Con el Security-Module no hay registro público: el alta la hace un
+// administrador. La pantalla de registro solo existe en modo demostración.
+function SignupRoute() {
+  return isAuthApiConfigured ? <SignupDisabled /> : <SignupPage />;
+}
+
+function SignupDisabled() {
+  return (
+    <AuthShell
+      icon={<UserPlus className="size-5" />}
+      title="Crear cuenta"
+      switchPath="/iniciar-sesion"
+      switchLabel="Iniciar sesión"
+      footerText="¿Ya tienes cuenta?"
+      footerLinkText="Inicia sesión"
+    >
+      <p className="text-sm leading-6 text-muted-foreground">
+        Las cuentas las crea un administrador de riesgo; no hay registro público. Solicita el alta a
+        tu administrador y luego inicia sesión.
+      </p>
+    </AuthShell>
+  );
+}
 
 const emptyForm = { nombre: "", email: "", password: "" };
 

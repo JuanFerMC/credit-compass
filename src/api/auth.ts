@@ -92,7 +92,7 @@ function demoLogout() {
   } catch {
     // nada que limpiar
   }
-  endSession();
+  endSession("logout");
 }
 
 // ---- Fachada ---------------------------------------------------------------

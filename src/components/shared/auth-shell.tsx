@@ -22,7 +22,7 @@ export function AuthShell({
 }: {
   icon: ReactNode;
   title: string;
-  switchPath: "/iniciar-sesion" | "/crear-cuenta";
+  switchPath: "/iniciar-sesion" | "/crear-cuenta" | "/recuperar-cuenta";
   switchLabel: string;
   footerText: string;
   footerLinkText: string;
@@ -96,5 +96,12 @@ export function FormError({ message }: { message: string }) {
     <p role="alert" className="rounded-lg bg-destructive-soft p-3 text-sm text-destructive">
       {message}
     </p>
+  );
+}
+
+// Aviso informativo a nivel de formulario (p. ej. "tu sesión terminó").
+export function FormNotice({ message }: { message: string }) {
+  return (
+    <output className="block rounded-lg bg-warning-soft p-3 text-sm text-warning">{message}</output>
   );
 }

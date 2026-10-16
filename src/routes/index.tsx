@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { isAuthApiConfigured } from "@/api/auth";
 import { PublicHeader, PublicFooter } from "@/components/layout/public-shell";
 import { Panel } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,9 @@ const features = [
 ] as const;
 
 function LandingPage() {
+  // Sin backend de autenticación la landing ofrece el recorrido demo; con él,
+  // solo el acceso con cuenta (no hay registro público).
+  const demo = !isAuthApiConfigured;
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader
@@ -48,9 +52,11 @@ function LandingPage() {
             <Button asChild variant="ghost" size="sm">
               <Link to="/iniciar-sesion">Iniciar sesión</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link to="/crear-cuenta">Crear cuenta</Link>
-            </Button>
+            {demo && (
+              <Button asChild size="sm">
+                <Link to="/crear-cuenta">Crear cuenta</Link>
+              </Button>
+            )}
           </>
         }
       />
@@ -69,15 +75,26 @@ function LandingPage() {
             panel, para que cada evaluación de crédito quede documentada y sea fácil de auditar.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild>
-              <Link to="/crear-cuenta">
-                Crear cuenta gratis
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link to="/panel">Ver panel de demostración</Link>
-            </Button>
+            {demo ? (
+              <>
+                <Button asChild>
+                  <Link to="/crear-cuenta">
+                    Crear cuenta gratis
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link to="/panel">Ver panel de demostración</Link>
+                </Button>
+              </>
+            ) : (
+              <Button asChild>
+                <Link to="/iniciar-sesion">
+                  Iniciar sesión
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            )}
           </div>
         </section>
 
@@ -112,8 +129,10 @@ function LandingPage() {
                 Veridica es un proyecto de scoring crediticio pensado para equipos de riesgo que
                 necesitan un criterio de evaluación claro y auditable: cada puntaje se puede
                 explicar regla por regla, en vez de depender de una decisión manual sin registro.
-                Este panel está en desarrollo activo — hoy mismo puedes explorarlo en modo
-                demostración, sin necesidad de crear una cuenta.
+                Este panel está en desarrollo activo.{" "}
+                {demo
+                  ? "Hoy mismo puedes explorarlo en modo demostración, sin necesidad de crear una cuenta."
+                  : "El acceso es con la cuenta que te asigne un administrador de riesgo."}
               </p>
             </div>
           </Panel>
@@ -123,14 +142,18 @@ function LandingPage() {
         <section className="mx-auto max-w-6xl px-6 py-12">
           <Panel className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div>
-              <h2 className="font-display text-xl font-bold">Explora el panel ahora</h2>
+              <h2 className="font-display text-xl font-bold">
+                {demo ? "Explora el panel ahora" : "Accede a tu panel"}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Sin registro: puedes recorrer todos los módulos en modo demostración.
+                {demo
+                  ? "Sin registro: puedes recorrer todos los módulos en modo demostración."
+                  : "Inicia sesión con tu cuenta para trabajar con los módulos de tu rol."}
               </p>
             </div>
             <Button asChild>
-              <Link to="/panel">
-                Ir al panel
+              <Link to={demo ? "/panel" : "/iniciar-sesion"}>
+                {demo ? "Ir al panel" : "Iniciar sesión"}
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
