@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { auth, isAuthApiConfigured } from "@/api/auth";
-import { ROLE_LABEL } from "@/api/roles";
+import { auth } from "@/api/auth";
 import { canAccess } from "@/api/permissions";
 import { useSession } from "@/api/session";
 import { useRol } from "@/api/use-rol";
@@ -94,7 +93,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="glass sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border md:flex">
           <Brand />
           <Navigation />
-          <UserSummary />
         </aside>
         {mobileOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
@@ -117,7 +115,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Button>
               </div>
               <Navigation onNavigate={() => setMobileOpen(false)} />
-              <UserSummary />
             </aside>
           </div>
         )}
@@ -210,45 +207,5 @@ function HeaderAccountActions() {
         <span className="sr-only sm:not-sr-only sm:ml-2">Cerrar sesión</span>
       </Button>
     </>
-  );
-}
-
-function UserSummary() {
-  const session = useSession();
-
-  if (session.status !== "authenticated") {
-    return (
-      <div className="border-t border-border p-3">
-        <p className="px-2 py-2 font-mono text-[10px] uppercase text-muted-foreground">
-          {session.status === "restoring" ? "Cargando sesión…" : "Sin sesión"}
-        </p>
-        {session.status === "anonymous" && (
-          <Button asChild variant="secondary" size="sm" className="w-full">
-            <Link to="/iniciar-sesion">Iniciar sesión</Link>
-          </Button>
-        )}
-      </div>
-    );
-  }
-
-  const { nombre, rol } = session.user;
-  return (
-    <div className="border-t border-border p-3">
-      <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
-        <div className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground font-display text-xs font-bold text-background">
-          {initialsOf(nombre)}
-        </div>
-        <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-semibold">{nombre}</p>
-          <p className="truncate font-mono text-[10px] uppercase text-muted-foreground">
-            {ROLE_LABEL[rol]}
-            {!isAuthApiConfigured && " · demo"}
-          </p>
-        </div>
-      </div>
-      <p className="mt-1 px-2 text-xs text-muted-foreground">
-        Gestiona tu cuenta desde el avatar de la cabecera.
-      </p>
-    </div>
   );
 }
