@@ -6,7 +6,6 @@ import {
   Gauge,
   LogOut,
   Menu,
-  KeyRound,
   UserCog,
   Scale,
   Settings2,
@@ -30,7 +29,6 @@ const navItems = [
   { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
   { to: "/panel/usuarios", label: "Gestión de usuarios", icon: UserCog },
-  { to: "/panel/cuenta", label: "Mi cuenta", icon: KeyRound },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -125,30 +123,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
         <div className="min-w-0 flex-1">
           <header className="glass sticky top-0 z-30 border-b border-border">
-            <div className="grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 md:px-8">
+            <div className="flex min-h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:px-8">
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="shrink-0 md:hidden"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
               >
                 <Menu className="size-5" />
               </Button>
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase text-muted-foreground">
+              <div className="min-w-0 flex-1">
+                <p className="hidden font-mono text-[10px] uppercase text-muted-foreground sm:block">
                   Motor de decisión
                 </p>
                 <p className="truncate font-display text-sm font-bold sm:text-base">
                   Riesgo claro. Decisiones trazables.
                 </p>
               </div>
-              <ThemeSwitcher />
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                <HeaderAccountActions />
+                <ThemeSwitcher />
+              </div>
             </div>
           </header>
           <main
             id="contenido"
-            className="mx-auto max-w-[1480px] space-y-6 px-4 py-6 sm:px-6 md:px-8 md:py-8"
+            className="mx-auto w-full max-w-none space-y-6 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
           >
             {children}
           </main>
@@ -168,7 +169,8 @@ function initialsOf(nombre: string) {
     .toUpperCase();
 }
 
-function UserSummary() {
+
+function HeaderAccountActions() {
   const session = useSession();
   const navigate = useNavigate();
 
@@ -176,6 +178,43 @@ function UserSummary() {
     await auth.logout();
     await navigate({ to: "/" });
   }
+
+  if (session.status !== "authenticated") return null;
+  const { nombre } = session.user;
+
+  return (
+    <>
+      <Button
+        asChild
+        variant="ghost"
+        size="icon"
+        className="size-9 shrink-0 rounded-full"
+        aria-label="Mi cuenta"
+        title="Mi cuenta"
+      >
+        <Link to="/panel/cuenta">
+          <span className="grid size-8 place-items-center rounded-full bg-foreground font-display text-xs font-bold text-background">
+            {initialsOf(nombre)}
+          </span>
+        </Link>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="size-9 shrink-0 px-0 sm:h-9 sm:w-auto sm:px-3"
+        onClick={logout}
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
+        <LogOut className="size-4" />
+        <span className="sr-only sm:not-sr-only sm:ml-2">Cerrar sesión</span>
+      </Button>
+    </>
+  );
+}
+
+function UserSummary() {
+  const session = useSession();
 
   if (session.status !== "authenticated") {
     return (
@@ -207,11 +246,9 @@ function UserSummary() {
           </p>
         </div>
       </div>
-      <Button asChild variant="ghost" size="sm" className="mt-1 w-full justify-start"><Link to="/panel/cuenta"><KeyRound className="size-4" />Mi cuenta</Link></Button>
-      <Button variant="ghost" size="sm" className="mt-1 w-full justify-start" onClick={logout}>
-        <LogOut className="size-4" />
-        Cerrar sesión
-      </Button>
+      <p className="mt-1 px-2 text-xs text-muted-foreground">
+        Gestiona tu cuenta desde el avatar de la cabecera.
+      </p>
     </div>
   );
 }
