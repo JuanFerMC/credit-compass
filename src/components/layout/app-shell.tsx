@@ -6,6 +6,8 @@ import {
   Gauge,
   LogOut,
   Menu,
+  KeyRound,
+  UserCog,
   Scale,
   Settings2,
   Users,
@@ -27,6 +29,8 @@ const navItems = [
   { to: "/panel/reglas", label: "Reglas de scoring", icon: Scale },
   { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
+  { to: "/panel/usuarios", label: "Gestión de usuarios", icon: UserCog },
+  { to: "/panel/cuenta", label: "Mi cuenta", icon: KeyRound },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -203,6 +207,7 @@ function UserSummary() {
           </p>
         </div>
       </div>
+      <Button asChild variant="ghost" size="sm" className="mt-1 w-full justify-start"><Link to="/panel/cuenta"><KeyRound className="size-4" />Mi cuenta</Link></Button>
       <Button variant="ghost" size="sm" className="mt-1 w-full justify-start" onClick={logout}>
         <LogOut className="size-4" />
         Cerrar sesión
