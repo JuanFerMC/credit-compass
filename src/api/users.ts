@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { authApi } from "@/api/auth";
 import { passwordSchema } from "@/api/auth";
+import { ROLE_ID, ROLES } from "@/api/roles";
 
 export const createManagedUserSchema = z.object({
   nombre: z
@@ -14,6 +15,7 @@ export const createManagedUserSchema = z.object({
     .email("Ingresa un correo válido")
     .max(255, "Máximo 255 caracteres"),
   password: passwordSchema,
+  rol: z.enum(ROLES),
 });
 
 export const changeOwnPasswordSchema = z.object({
@@ -62,10 +64,16 @@ export const usersApi = {
     return z.array(userSchema).parse(response).map(parseUser);
   },
 
-  async createAnalyst(input: ManagedUserInput): Promise<ManagedUser> {
+  async getById(id: number): Promise<ManagedUser> {
+    const response = await authApi.request<unknown>(`/api/v1/usuarios/${id}`);
+    return parseUser(response);
+  },
+
+  async create(input: ManagedUserInput): Promise<ManagedUser> {
+    const { rol, ...user } = input;
     const response = await authApi.request<unknown>("/api/v1/usuarios", {
       method: "POST",
-      body: JSON.stringify({ ...input, idRol: 2 }),
+      body: JSON.stringify({ ...user, idRol: ROLE_ID[rol] }),
     });
     return parseUser(response);
   },

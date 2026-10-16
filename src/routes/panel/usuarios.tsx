@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { KeyRound, RefreshCw, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { Eye, KeyRound, RefreshCw, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { ROLE_LABEL, ROLES, type Rol } from "@/api/roles";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { isAuthApiConfigured } from "@/api/auth";
 import { ApiRequestError } from "@/api/http";
@@ -18,7 +26,12 @@ export const Route = createFileRoute("/panel/usuarios")({
   component: UsersPage,
 });
 
-const emptyForm = { nombre: "", email: "", password: "" };
+const emptyForm = {
+  nombre: "",
+  email: "",
+  password: "",
+  rol: "ANALISTA_CREDITO" as Rol,
+};
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -42,6 +55,10 @@ function UsersPage() {
   const [resetId, setResetId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [resetMessage, setResetMessage] = useState("");
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [detailUser, setDetailUser] = useState<ManagedUser | null>(null);
 
   const loadUsers = useCallback(async () => {
     if (!isAuthApiConfigured) return;
@@ -64,6 +81,24 @@ function UsersPage() {
     void loadUsers();
   }, [loadUsers]);
 
+  async function openDetails(user: ManagedUser) {
+    setDetailOpen(true);
+    setDetailLoading(true);
+    setDetailError("");
+    setDetailUser(null);
+    try {
+      setDetailUser(await usersApi.getById(user.id));
+    } catch (err) {
+      setDetailError(
+        err instanceof ApiRequestError
+          ? err.message
+          : "No fue posible consultar el detalle del usuario.",
+      );
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   async function submitCreate(event: FormEvent) {
     event.preventDefault();
     setNotice("");
@@ -76,13 +111,13 @@ function UsersPage() {
     setErrors({});
     setSaving(true);
     try {
-      const created = await usersApi.createAnalyst(parsed.data);
+      const created = await usersApi.create(parsed.data);
       setUsers((current) => [
         created,
         ...current.filter((user) => user.id !== created.id),
       ]);
       setForm(emptyForm);
-      setNotice(`La cuenta de ${created.nombre} se creó con el rol Analista de crédito.`);
+      setNotice(`La cuenta de ${created.nombre} se creó con el rol ${ROLE_LABEL[created.rolNombre as Rol] ?? created.rolNombre}.`);
     } catch (err) {
       setError(
         err instanceof ApiRequestError
@@ -148,7 +183,7 @@ function UsersPage() {
       <PageHeader
         eyebrow="Administración"
         title="Gestión de usuarios"
-        description="Crea cuentas de analistas, consulta su estado, activa o desactiva cuentas y restablece contraseñas."
+        description="Crea cuentas de administradores o analistas, consulta sus fichas, activa o desactiva cuentas y restablece contraseñas."
         action={
           <Button
             variant="outline"
@@ -190,9 +225,9 @@ function UsersPage() {
             <UserPlus className="size-5" />
           </span>
           <div>
-            <h2 className="font-display text-lg font-bold">Crear cuenta de analista</h2>
+            <h2 className="font-display text-lg font-bold">Crear cuenta de usuario</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              El rol se asigna desde el servidor; este formulario no permite crear administradores.
+              Selecciona si la cuenta tendrá permisos de administrador o de analista.
             </p>
           </div>
         </div>
@@ -220,12 +255,32 @@ function UsersPage() {
               disabled={!isAuthApiConfigured || saving}
             />
           </Field>
+          <Field label="Rol" htmlFor="rol">
+            <select
+              id="rol"
+              className="form-control"
+              value={form.rol}
+              onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}
+              disabled={!isAuthApiConfigured || saving}
+            >
+              {ROLES.map((rol) => (
+                <option key={rol} value={rol}>
+                  {ROLE_LABEL[rol]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="sm:col-span-2">
+            <p className="text-xs text-muted-foreground">
+              La cuenta se creará con el rol: <strong>{ROLE_LABEL[form.rol]}</strong>.
+            </p>
+          </div>
           <div className="sm:col-span-2">
             <Field
               label="Contraseña inicial"
               htmlFor="password"
               error={errors["password"]}
-              hint="Entre 12 y 72 caracteres. El analista podrá cambiarla desde Mi cuenta."
+              hint="Entre 12 y 72 caracteres. El usuario podrá cambiarla desde Mi cuenta."
             >
               <input
                 id="password"
@@ -241,7 +296,7 @@ function UsersPage() {
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={!isAuthApiConfigured || saving}>
-              {saving ? "Guardando…" : "Crear analista"}
+              {saving ? "Guardando…" : "Crear cuenta"}
             </Button>
           </div>
         </form>
@@ -299,6 +354,14 @@ function UsersPage() {
                     <td className="px-4 py-4">{formatDate(user.fechaCreacion)}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => void openDetails(user)}
+                        >
+                          <Eye className="size-4" />
+                          Ver ficha
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -369,6 +432,73 @@ function UsersPage() {
           </div>
         )}
       </Panel>
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Ficha del usuario</DialogTitle>
+            <DialogDescription>
+              Información consultada directamente desde el Security-Module.
+            </DialogDescription>
+          </DialogHeader>
+          {detailLoading ? (
+            <p className="py-6 text-sm text-muted-foreground">Consultando usuario…</p>
+          ) : detailError ? (
+            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {detailError}
+            </p>
+          ) : detailUser ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">Nombre completo</p>
+                <p className="font-semibold">{detailUser.nombre}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">Correo electrónico</p>
+                <p className="break-all font-medium">{detailUser.email}</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Identificador</p>
+                  <p className="font-mono">#{detailUser.id}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Rol</p>
+                  <p className="font-medium">
+                    {ROLE_LABEL[detailUser.rolNombre as Rol] ?? detailUser.rolNombre}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Estado</p>
+                  <p className="font-medium">{detailUser.activo ? "Activo" : "Inactivo"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground">Fecha de creación</p>
+                  <p>{formatDate(detailUser.fechaCreacion)}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-xs uppercase text-muted-foreground">Última modificación</p>
+                  <p>{formatDate(detailUser.fechaModificacion)}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDetailOpen(false);
+                    setResetId(detailUser.id);
+                    setNewPassword("");
+                    setResetMessage("");
+                  }}
+                >
+                  <KeyRound className="size-4" />
+                  Restablecer contraseña
+                </Button>
+                <Button onClick={() => setDetailOpen(false)}>Cerrar</Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
       <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
         La API del Security-Module aplica los permisos. Esta pantalla no sustituye la autorización
