@@ -296,7 +296,7 @@ function UsersPage() {
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={!isAuthApiConfigured || saving}>
-              {saving ? "Guardando…" : "Crear analista"}
+              {saving ? "Guardando…" : "Crear cuenta"}
             </Button>
           </div>
         </form>
