@@ -9,6 +9,7 @@ import {
   Scale,
   Settings2,
   UserCog,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -205,7 +206,13 @@ function UserSummary() {
           </p>
         </div>
       </div>
-      <Button variant="ghost" size="sm" className="mt-1 w-full justify-start" onClick={logout}>
+      <Button asChild variant="ghost" size="sm" className="mt-1 w-full justify-start">
+        <Link to="/panel/cuenta">
+          <UserRound className="size-4" />
+          Mi cuenta
+        </Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="w-full justify-start" onClick={logout}>
         <LogOut className="size-4" />
         Cerrar sesión
       </Button>

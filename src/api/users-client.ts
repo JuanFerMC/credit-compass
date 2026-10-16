@@ -42,6 +42,29 @@ export const resetPasswordSchema = z
   });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+// Cambio de la contraseña PROPIA. El analista debe enviar `currentPassword`
+// (el backend la verifica); el administrador no. Por eso el esquema se arma
+// según `requireCurrent`.
+export function makeChangePasswordSchema(requireCurrent: boolean) {
+  return z
+    .object({
+      currentPassword: requireCurrent
+        ? z.string().min(1, "Ingresa tu contraseña actual")
+        : z.string().optional(),
+      newPassword: passwordSchema,
+      confirm: z.string(),
+    })
+    .refine((value) => value.newPassword === value.confirm, {
+      message: "Las contraseñas no coinciden",
+      path: ["confirm"],
+    })
+    .refine((value) => !requireCurrent || value.newPassword !== value.currentPassword, {
+      message: "La contraseña nueva debe ser distinta de la actual",
+      path: ["newPassword"],
+    });
+}
+export type ChangePasswordInput = z.infer<ReturnType<typeof makeChangePasswordSchema>>;
+
 function invalidResponse(): never {
   throw new ApiRequestError("La respuesta del servicio de usuarios no es válida.", 0);
 }
@@ -85,6 +108,16 @@ export function createUsersApi(request: Request) {
       await request<void>(`/api/v1/usuarios/${id}/password`, {
         method: "PATCH",
         body: JSON.stringify({ newPassword }),
+      });
+    },
+
+    // Cambio de la contraseña propia. `currentPassword` solo lo envía el analista.
+    // Ojo: una `currentPassword` incorrecta responde 401 INVALID_CREDENTIALS con un
+    // token VÁLIDO; http.ts no lo trata como sesión vencida.
+    async changePassword(id: number, newPassword: string, currentPassword?: string): Promise<void> {
+      await request<void>(`/api/v1/usuarios/${id}/password`, {
+        method: "PATCH",
+        body: JSON.stringify(currentPassword ? { currentPassword, newPassword } : { newPassword }),
       });
     },
   };
