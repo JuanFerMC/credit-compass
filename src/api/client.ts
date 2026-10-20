@@ -150,6 +150,9 @@ export type Evaluation = {
   idSolicitante: number;
   fechaEvaluacion: string;
   scoreTotal: number;
+  categoria?: string | null;
+  versionPolitica?: number | null;
+  estado?: "COMPLETADA" | "PENDIENTE" | null;
   detalles: EvaluationDetail[];
 };
 
