@@ -238,7 +238,7 @@ function EvaluationsPage() {
                     <div key={`${factor.idRegla}-${index}`} className="rounded-lg border border-border p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold">{factor.variable} · Regla {factor.idRegla}</p>
-                        <StatusBadge tone={factor.condicionCumplida ? "positive" : "neutral"}>{factor.condicionCumplida ? "Condición cumplida" : "No cumplida"}</StatusBadge>
+                        <StatusBadge tone={factor.condicionCumplida ? "positive" : "accent"}>{factor.condicionCumplida ? "Condición cumplida" : "No cumplida"}</StatusBadge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">Condición: {factor.operadorAplicado} {factor.valorCondicionAplicado}</p>
                       <p className="mt-1 text-sm">Contribución: <strong>{factor.contribucion > 0 ? "+" : ""}{factor.contribucion}</strong> (puntaje de regla: {factor.puntajeReglaAplicado})</p>
