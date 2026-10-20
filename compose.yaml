@@ -5,6 +5,7 @@ services:
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
         VITE_AUTH_BASE_URL: ${VITE_AUTH_BASE_URL:-http://localhost:8081}
+        VITE_EVALUATION_QUERY_BASE_URL: ${VITE_EVALUATION_QUERY_BASE_URL:-http://localhost:8082}
         VITE_SCORING_SENDS_TOKEN: ${VITE_SCORING_SENDS_TOKEN:-false}
     ports:
       - "3000:3000"
