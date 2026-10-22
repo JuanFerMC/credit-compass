@@ -160,10 +160,8 @@ export type ApiError = {
   traceId?: string;
 };
 
-// Motor de Scoring (:8080). Hoy responde `permitAll()` y su CORS NO incluye
-// `Authorization` en allowedHeaders: enviarle el token haría que el navegador
-// bloquee el preflight. Se activa con VITE_SCORING_SENDS_TOKEN=true el día que
-// scoring valide JWT y habilite ese header.
+// Motor de Scoring (:8080). Su SecurityFilterChain exige JWT con rol y su CORS
+// permite Authorization; el token compartido de Auth se envía por defecto.
 const API_BASE_URL = cleanBaseUrl(import.meta.env["VITE_API_BASE_URL"] as string | undefined);
 const SCORING_SENDS_TOKEN = import.meta.env["VITE_SCORING_SENDS_TOKEN"] === "true";
 

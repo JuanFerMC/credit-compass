@@ -15,19 +15,19 @@ Frontend web para el sistema de scoring crediticio. Permite trabajar con solicit
 - Interfaz adaptable a escritorio y móvil, navegación por teclado y página pública de presentación.
 - Tema visual claro/oscuro.
 
-> **Importante:** la interfaz diferencia los roles, pero la autorización real debe validarse también en Security-Module. Las pantallas de reglas, evaluaciones, informes y métricas pueden mostrar información demostrativa mientras el backend no exponga los endpoints de consulta necesarios. Consulta [DEPLOYMENT.md](DEPLOYMENT.md) para conocer las limitaciones y configuración.
+> **Importante:** la interfaz diferencia los roles y las APIs aplican autorización con el JWT de Auth. Las pantallas de informes y algunos listados todavía pueden ser informativos cuando no exista un endpoint de consulta persistente. Consulta [DEPLOYMENT.md](DEPLOYMENT.md) para el alcance y la configuración del conjunto.
 
 ## Tecnologías
 
 - React, TypeScript y TanStack Start/Router
 - Vite y Tailwind CSS
-- API HTTP para el Motor de Scoring y Security-Module
+- APIs HTTP para Auth, Motor de Scoring y Evaluation Query
 - Docker para construir y ejecutar el frontend como contenedor
 
 ## Requisitos
 
 - Node.js compatible con el proyecto y npm para desarrollo local.
-- Para el flujo real, Motor de Scoring y Security-Module deben estar levantados y ser accesibles desde el navegador.
+- Para el flujo real, Auth, Motor de Scoring y Evaluation Query deben estar levantados y ser accesibles desde el navegador.
 - Alternativamente, Docker y Docker Compose para ejecutar el contenedor.
 
 ## Desarrollo local
@@ -42,7 +42,7 @@ Frontend web para el sistema de scoring crediticio. Permite trabajar con solicit
 
    En Windows PowerShell, puedes copiarlo con `Copy-Item .env.example .env`.
 
-3. Ajusta las variables `VITE_API_BASE_URL` y `VITE_AUTH_BASE_URL` en `.env` a las direcciones de los backends que vayas a usar.
+3. Ajusta `VITE_API_BASE_URL`, `VITE_AUTH_BASE_URL` y `VITE_EVALUATION_QUERY_BASE_URL` en `.env` a las direcciones de los backends; conserva `VITE_SCORING_SENDS_TOKEN=true` para enviar el JWT.
 4. Inicia el servidor:
 
    ```bash

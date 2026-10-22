@@ -1,14 +1,165 @@
 services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-CreditsCore}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.integration}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - credit-compass-data:/var/lib/postgresql/data
+      - ./database/init/01-create-query-schema.sql:/docker-entrypoint-initdb.d/01-create-query-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  scoring-api:
+    build:
+      context: ../scoring-api
+      dockerfile: docker/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_URL: postgresql://database:5432/${POSTGRES_DB:-CreditsCore}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.integration}
+      SCORING_FLYWAY_MIGRAR_AL_ARRANCAR: "true"
+      AUTH_JWT_ISSUER: crediticio-auth
+      SCORING_JWT_PUBLIC_KEY_LOCATION: file:/run/auth-keys/jwt-publica.pem
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      SCORING_SAGA_HABILITADA: "true"
+      EVALUATION_QUERY_API_BASE_URL: http://evaluation-query-api:8082
+      SCORING_SERVICE_JWT_ISSUER: scoring-api
+      SCORING_SERVICE_JWT_KEY_ID: ${SCORING_SERVICE_JWT_KEY_ID:-dev-local}
+      SCORING_SERVICE_JWT_PRIVATE_KEY_LOCATION: file:/run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-privada.pem
+      SCORING_SERVICE_JWT_PUBLIC_KEY_LOCATION: file:/run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+    volumes:
+      - type: bind
+        source: ../auth/keys/jwt-publica.pem
+        target: /run/auth-keys/jwt-publica.pem
+        read_only: true
+      - type: bind
+        source: ${SCORING_SAGA_KEYS_DIR:?Define SCORING_SAGA_KEYS_DIR en .env.integration}/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-privada.pem
+        target: /run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-privada.pem
+        read_only: true
+      - type: bind
+        source: ${SCORING_SAGA_KEYS_DIR:?Define SCORING_SAGA_KEYS_DIR en .env.integration}/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+        target: /run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+        read_only: true
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health >/dev/null"]
+      interval: 15s
+      timeout: 4s
+      start_period: 60s
+      retries: 8
+    restart: unless-stopped
+
+  auth-api:
+    build:
+      context: ../auth
+      dockerfile: Dockerfile
+    depends_on:
+      scoring-api:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-CreditsCore}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.integration}
+      JWT_PRIVATE_KEY_LOCATION: file:/run/auth-keys/jwt-privada.pem
+      JWT_PUBLIC_KEY_LOCATION: file:/run/auth-keys/jwt-publica.pem
+      JWT_ISSUER: crediticio-auth
+      JWT_AUDIENCES: scoring-api,evaluation-query-api
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      INIT_ADMIN_EMAIL: ${INIT_ADMIN_EMAIL:?Define INIT_ADMIN_EMAIL en .env.integration}
+      INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:?Define INIT_ADMIN_PASSWORD en .env.integration}
+      INIT_ADMIN_NOMBRE: ${INIT_ADMIN_NOMBRE:-Administrador local}
+    volumes:
+      - type: bind
+        source: ../auth/keys
+        target: /run/auth-keys
+        read_only: true
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health >/dev/null"]
+      interval: 15s
+      timeout: 4s
+      start_period: 60s
+      retries: 8
+    restart: unless-stopped
+
+  evaluation-query-api:
+    build:
+      context: ../evaluation-query-api
+      dockerfile: Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+      scoring-api:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+    environment:
+      EVALUATION_QUERY_API_PORT: 8082
+      EVALUATION_QUERY_DB_URL: postgresql://database:5432/${POSTGRES_DB:-CreditsCore}
+      EVALUATION_QUERY_DB_USERNAME: ${POSTGRES_USER:-postgres}
+      EVALUATION_QUERY_DB_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.integration}
+      EVALUATION_QUERY_DB_SCHEMA: consulta
+      EVALUATION_QUERY_FLYWAY_MIGRAR_AL_ARRANCAR: "true"
+      AUTH_JWT_ISSUER: crediticio-auth
+      EVALUATION_QUERY_JWT_PUBLIC_KEY_LOCATION: file:/run/auth-keys/jwt-publica.pem
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      EVALUATION_QUERY_SAGA_HABILITADA: "true"
+      SCORING_SERVICE_JWT_ISSUER: scoring-api
+      SCORING_SERVICE_JWT_KEY_ID: ${SCORING_SERVICE_JWT_KEY_ID:-dev-local}
+      SCORING_SERVICE_JWT_PUBLIC_KEY_LOCATION: file:/run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+    volumes:
+      - type: bind
+        source: ../auth/keys/jwt-publica.pem
+        target: /run/auth-keys/jwt-publica.pem
+        read_only: true
+      - type: bind
+        source: ${SCORING_SAGA_KEYS_DIR:?Define SCORING_SAGA_KEYS_DIR en .env.integration}/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+        target: /run/saga-keys/${SCORING_SERVICE_JWT_KEY_ID:-dev-local}-publica.pem
+        read_only: true
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health >/dev/null"]
+      interval: 15s
+      timeout: 4s
+      start_period: 60s
+      retries: 8
+    restart: unless-stopped
+
   frontend:
+    depends_on:
+      auth-api:
+        condition: service_healthy
+      scoring-api:
+        condition: service_healthy
+      evaluation-query-api:
+        condition: service_healthy
     build:
       context: .
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
         VITE_AUTH_BASE_URL: ${VITE_AUTH_BASE_URL:-http://localhost:8081}
         VITE_EVALUATION_QUERY_BASE_URL: ${VITE_EVALUATION_QUERY_BASE_URL:-http://localhost:8082}
-        VITE_SCORING_SENDS_TOKEN: ${VITE_SCORING_SENDS_TOKEN:-false}
+        VITE_SCORING_SENDS_TOKEN: ${VITE_SCORING_SENDS_TOKEN:-true}
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
     restart: unless-stopped
+
+volumes:
+  credit-compass-data:

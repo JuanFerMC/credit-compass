@@ -13,6 +13,11 @@ import {
   isApiConfigured,
 } from "@/api/client";
 import { applicants } from "@/data/demo-data";
+import {
+  evaluationQueryApi,
+  isEvaluationQueryApiConfigured,
+  type ApplicantEvaluationHistoryItem,
+} from "@/api/evaluation-query";
 import { fieldA11y, zodErrors } from "@/lib/forms";
 
 export const Route = createFileRoute("/panel/solicitantes")({
@@ -53,6 +58,24 @@ function ApplicantsPage() {
   const [document, setDocument] = useState("");
   const [result, setResult] = useState<ApplicantDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<ApplicantEvaluationHistoryItem[]>([]);
+  const [historyState, setHistoryState] = useState<"idle" | "loading" | "ready" | "error" | "unconfigured">("idle");
+
+  async function loadHistory(idSolicitante: number) {
+    if (!isEvaluationQueryApiConfigured) {
+      setHistoryState("unconfigured");
+      setHistory([]);
+      return;
+    }
+    setHistoryState("loading");
+    try {
+      setHistory(await evaluationQueryApi.getApplicantHistory(idSolicitante));
+      setHistoryState("ready");
+    } catch {
+      setHistory([]);
+      setHistoryState("error");
+    }
+  }
 
   function update<K extends keyof ApplicantInput>(key: K, value: ApplicantInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -101,7 +124,11 @@ function ApplicantsPage() {
     }
     setLoading(true);
     try {
-      if (isApiConfigured) setResult(await api.findApplicant(document));
+      if (isApiConfigured) {
+        const applicant = await api.findApplicant(document);
+        setResult(applicant);
+        await loadHistory(applicant.idSolicitante);
+      }
       else {
         const found = applicants.find((item) => item.document === document);
         if (!found) {
@@ -120,6 +147,8 @@ function ApplicantsPage() {
           historialCrediticio: found.history,
           antiguedadLaboral: 5,
         });
+        setHistory([]);
+        setHistoryState("idle");
       }
     } catch (error) {
       setResult(null);
@@ -196,6 +225,14 @@ function ApplicantsPage() {
                 value={new Date(result.fechaRegistro).toLocaleDateString("es-CO")}
               />
             </div>
+            <section className="mt-6 border-t border-border pt-5" aria-live="polite">
+              <h3 className="font-display font-bold">Historial de evaluaciones (Query)</h3>
+              {historyState === "loading" && <p className="mt-2 text-sm text-muted-foreground">Consultando historial…</p>}
+              {historyState === "unconfigured" && <p className="mt-2 text-sm text-muted-foreground">Configura VITE_EVALUATION_QUERY_BASE_URL para consultar el historial.</p>}
+              {historyState === "error" && <p className="mt-2 text-sm text-destructive" role="alert">No fue posible consultar el historial de Query.</p>}
+              {historyState === "ready" && history.length === 0 && <p className="mt-2 text-sm text-muted-foreground">Este solicitante todavía no tiene evaluaciones registradas.</p>}
+              {historyState === "ready" && history.length > 0 && <ul className="mt-3 divide-y divide-border">{history.map((item) => <li key={item.idEvaluacion} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"><span><strong>Evaluación {item.idEvaluacion}</strong><span className="ml-2 text-muted-foreground">{new Date(item.fechaEvaluacion).toLocaleDateString("es-CO")}</span></span><span className="font-mono">{item.scoreTotal} · {item.categoria ?? "Sin clasificar"}</span></li>)}</ul>}
+            </section>
           </div>
         )}
       </Panel>

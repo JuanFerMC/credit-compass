@@ -1,6 +1,6 @@
 # Configuración y despliegue
 
-Esta guía cubre el frontend de Credit-Compass (Veridica) y su comunicación con dos servicios independientes: el Motor de Scoring y Security-Module.
+Esta guía cubre Credit-Compass (Veridica) y su integración local con Auth, Scoring y Evaluation Query. El navegador llama a las tres APIs; Scoring llama a Query para la saga de recomendaciones.
 
 ## 1. Variables de entorno
 
@@ -10,7 +10,8 @@ Copia `.env.example` a `.env` y configura las URLs:
 |---|---|---|
 | `VITE_API_BASE_URL` | Motor de Scoring | `http://localhost:8080` |
 | `VITE_AUTH_BASE_URL` | Security-Module: login, sesión, roles y usuarios | `http://localhost:8081` |
-| `VITE_SCORING_SENDS_TOKEN` | Envía el JWT también al Motor de Scoring | `false` |
+| `VITE_EVALUATION_QUERY_BASE_URL` | Evaluation Query: explicaciones, recomendaciones e historial | `http://localhost:8082` |
+| `VITE_SCORING_SENDS_TOKEN` | Envía el JWT también al Motor de Scoring | `true` |
 
 Las variables `VITE_*` se incluyen en el bundle del frontend durante la compilación. No pongas secretos, contraseñas ni claves privadas en ellas. Después de cambiar una variable, reinicia Vite o reconstruye la imagen de Docker.
 
@@ -23,11 +24,11 @@ Si `VITE_AUTH_BASE_URL` está vacía, el inicio de sesión utiliza una sesión s
 - En Security-Module, crea el primer administrador mediante las variables de inicialización que documente ese repositorio (en la configuración actual: `INIT_ADMIN_EMAIL` y `INIT_ADMIN_PASSWORD`). Utiliza una contraseña robusta y no la guardes en el repositorio.
 - No existe registro público: el alta de usuarios la realiza un administrador.
 
-Deja `VITE_SCORING_SENDS_TOKEN=false` salvo que el Motor de Scoring esté configurado para aceptar el encabezado `Authorization` en CORS. Con `true`, el navegador puede bloquear las solicitudes si el preflight CORS no permite ese encabezado.
+Scoring valida el JWT emitido por Auth y permite `Authorization` en CORS. Por eso `VITE_SCORING_SENDS_TOKEN=true` para el flujo real; Auth y Query también comparten la sesión de usuario.
 
 ## 2. Desarrollo local
 
-1. Inicia PostgreSQL y los backends siguiendo sus propias guías. Configura en ellos la base de datos y los orígenes CORS.
+1. Inicia PostgreSQL y las tres APIs siguiendo sus propias guías. Las tres APIs deben compartir issuer, claves públicas y base de datos; configura el mismo origen CORS en cada servicio.
 2. Crea el archivo `.env` a partir de `.env.example` y ajusta las URLs si tus servicios utilizan otros puertos.
 3. Instala dependencias y ejecuta el frontend:
 
@@ -36,7 +37,7 @@ Deja `VITE_SCORING_SENDS_TOKEN=false` salvo que el Motor de Scoring esté config
    npm run dev
    ```
 
-4. Abre la URL indicada por Vite en la terminal (normalmente `http://localhost:5173`).
+4. Abre la URL indicada por Vite en la terminal (normalmente `http://localhost:5173`). Configura también `VITE_EVALUATION_QUERY_BASE_URL`.
 
 Comprobaciones útiles:
 
@@ -76,23 +77,38 @@ Para compartir una demo con alguien que no esté en la misma red puedes usar un 
 - No expongas bases de datos ni puertos administrativos directamente a Internet.
 - No compartas credenciales reales ni datos personales en una demo. Revisa las restricciones de acceso y los usuarios de prueba antes de abrir el enlace.
 
-## 5. Docker Compose
+## 5. Integración local con Docker Compose
 
-El archivo `compose.yaml` construye y ejecuta solo el frontend. Los dos backends deben ejecutarse por separado y ser accesibles desde el navegador del usuario.
+El Compose del frontend construye Auth, Scoring, Evaluation Query y Credit-Compass, además de una base PostgreSQL local. Es una configuración de desarrollo: usa un único usuario de base con privilegios amplios y no debe desplegarse en producción. Scoring inicia primero para aplicar las migraciones V1–V12; Auth inicia después porque comparte el historial Flyway de `public` y usa versiones V100–V109. Query aplica sus migraciones V1–V2 en `consulta`.
+
+Auth monta los PEM de `../auth/keys` solo en runtime. Scoring y Query montan la clave pública de Auth y el par de servicio S1 de Scoring, que debe ser distinto del par de Auth. La carpeta privada S1 se mantiene fuera de los repositorios.
+
+1. Asegúrate de que `auth/keys/jwt-privada.pem` y `auth/keys/jwt-publica.pem` sean el par PEM de Auth.
+2. Genera el par independiente S1 desde PowerShell (requiere OpenSSL):
+
+   ```powershell
+   $sagaKeys = "C:\Users\Juan Mona\Documents\Codex\.local-secrets\veridica\saga"
+   New-Item -ItemType Directory -Force -Path $sagaKeys | Out-Null
+   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out (Join-Path $sagaKeys "dev-local-privada.pem")
+   openssl pkey -in (Join-Path $sagaKeys "dev-local-privada.pem") -pubout -out (Join-Path $sagaKeys "dev-local-publica.pem")
+   ```
+
+3. Copia `.env.integration.example` a `.env.integration`. Cambia las contraseñas de ejemplo y confirma que `SCORING_SAGA_KEYS_DIR` apunta a la carpeta S1. No agregues `.env.integration` ni PEM al repositorio. Auth trae un usuario seed en su migración V105; sus variables `INIT_ADMIN_*` solo crean otro administrador cuando no existe ninguno y no reemplazan el seed. Cambia de inmediato la contraseña de la cuenta seed desde Mi cuenta antes de usar datos reales.
+4. Inicia toda la solución desde `credit-compass`:
 
 ```bash
-docker compose up --build
+docker compose --env-file .env.integration up --build
 ```
 
-El frontend queda disponible en `http://localhost:3000`.
+El frontend queda en `http://localhost:3000`; Auth en `:8081`, Scoring en `:8080`, Query en `:8082` y PostgreSQL en `:5433`. Los `VITE_*` apuntan a `localhost` porque las peticiones se hacen desde el navegador, no desde la red interna de Docker.
 
-Compose pasa las variables `VITE_*` como argumentos de compilación. Si el frontend se abre desde otro dispositivo, define en el archivo `.env` las URLs API con la IP o el dominio accesible desde ese dispositivo, no con `localhost`. Luego reconstruye:
+Compose pasa las variables `VITE_*` como argumentos de compilación. Para apagar el conjunto:
 
 ```bash
-docker compose up --build -d
+docker compose --env-file .env.integration down
 ```
 
-El backend de autenticación debe permitir el origen del frontend (por defecto `http://localhost:3000` en esta modalidad). Añade los demás orígenes solo si realmente los utilizas.
+La base conserva datos en un volumen Docker. `down -v` elimina ese volumen y todos los datos locales. No lo uses si quieres conservar la base.
 
 ## 6. Construir y ejecutar la imagen Docker
 
@@ -102,7 +118,8 @@ Ejemplo de construcción:
 docker build \
   --build-arg VITE_API_BASE_URL=http://localhost:8080 \
   --build-arg VITE_AUTH_BASE_URL=http://localhost:8081 \
-  --build-arg VITE_SCORING_SENDS_TOKEN=false \
+  --build-arg VITE_EVALUATION_QUERY_BASE_URL=http://localhost:8082 \
+  --build-arg VITE_SCORING_SENDS_TOKEN=true \
   -t credit-compass-frontend .
 ```
 
@@ -136,7 +153,7 @@ Y del Security-Module:
 - `GET /api/v1/auth/validate`
 - `GET /api/v1/usuarios/{id}`
 
-La lista anterior documenta los endpoints integrados conocidos, no es una afirmación de cobertura exhaustiva del backend. Las tablas/listados de reglas, evaluaciones, informes y el dashboard pueden seguir siendo informativos hasta que existan endpoints de consulta adecuados. Comprueba los contratos actuales en los repositorios de backend.
+La interfaz consume el scoring transaccional, el login/sesión de Auth y en Query las rutas de explicación, recomendaciones e historial. Las tablas/listados de reglas, informes y el dashboard aún pueden ser informativos donde los backends no tienen endpoints correspondientes.
 
 El token de acceso vive en memoria y el refresh token se almacena en `sessionStorage`, según el flujo de autenticación actual.
 
