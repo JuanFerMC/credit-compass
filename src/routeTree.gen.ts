@@ -18,6 +18,7 @@ import { Route as PanelIndexRouteImport } from './routes/panel/index'
 import { Route as PanelCuentaRouteImport } from './routes/panel/cuenta'
 import { Route as PanelEvaluacionesRouteImport } from './routes/panel/evaluaciones'
 import { Route as PanelInformesRouteImport } from './routes/panel/informes'
+import { Route as PanelPoliticaClasificacionRouteImport } from './routes/panel/politica-clasificacion'
 import { Route as PanelReglasRouteImport } from './routes/panel/reglas'
 import { Route as PanelSolicitantesRouteImport } from './routes/panel/solicitantes'
 import { Route as PanelUsuariosRouteImport } from './routes/panel/usuarios'
@@ -68,6 +69,12 @@ const PanelInformesRoute = PanelInformesRouteImport.update({
   path: '/informes',
   getParentRoute: () => PanelRouteRoute,
 } as any)
+const PanelPoliticaClasificacionRoute =
+  PanelPoliticaClasificacionRouteImport.update({
+    id: '/politica-clasificacion',
+    path: '/politica-clasificacion',
+    getParentRoute: () => PanelRouteRoute,
+  } as any)
 const PanelReglasRoute = PanelReglasRouteImport.update({
   id: '/reglas',
   path: '/reglas',
@@ -98,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
+  '/panel/politica-clasificacion': typeof PanelPoliticaClasificacionRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
   '/panel/usuarios': typeof PanelUsuariosRoute
@@ -112,6 +120,7 @@ export interface FileRoutesByTo {
   '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
+  '/panel/politica-clasificacion': typeof PanelPoliticaClasificacionRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
   '/panel/usuarios': typeof PanelUsuariosRoute
@@ -128,6 +137,7 @@ export interface FileRoutesById {
   '/panel/cuenta': typeof PanelCuentaRoute
   '/panel/evaluaciones': typeof PanelEvaluacionesRoute
   '/panel/informes': typeof PanelInformesRoute
+  '/panel/politica-clasificacion': typeof PanelPoliticaClasificacionRoute
   '/panel/reglas': typeof PanelReglasRoute
   '/panel/solicitantes': typeof PanelSolicitantesRoute
   '/panel/usuarios': typeof PanelUsuariosRoute
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
+    | '/panel/politica-clasificacion'
     | '/panel/reglas'
     | '/panel/solicitantes'
     | '/panel/usuarios'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
+    | '/panel/politica-clasificacion'
     | '/panel/reglas'
     | '/panel/solicitantes'
     | '/panel/usuarios'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
     | '/panel/cuenta'
     | '/panel/evaluaciones'
     | '/panel/informes'
+    | '/panel/politica-clasificacion'
     | '/panel/reglas'
     | '/panel/solicitantes'
     | '/panel/usuarios'
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelInformesRouteImport
       parentRoute: typeof PanelRouteRoute
     }
+    '/panel/politica-clasificacion': {
+      id: '/panel/politica-clasificacion'
+      path: '/politica-clasificacion'
+      fullPath: '/panel/politica-clasificacion'
+      preLoaderRoute: typeof PanelPoliticaClasificacionRouteImport
+      parentRoute: typeof PanelRouteRoute
+    }
     '/panel/reglas': {
       id: '/panel/reglas'
       path: '/reglas'
@@ -289,6 +309,7 @@ interface PanelRouteRouteChildren {
   PanelCuentaRoute: typeof PanelCuentaRoute
   PanelEvaluacionesRoute: typeof PanelEvaluacionesRoute
   PanelInformesRoute: typeof PanelInformesRoute
+  PanelPoliticaClasificacionRoute: typeof PanelPoliticaClasificacionRoute
   PanelReglasRoute: typeof PanelReglasRoute
   PanelSolicitantesRoute: typeof PanelSolicitantesRoute
   PanelUsuariosRoute: typeof PanelUsuariosRoute
@@ -300,6 +321,7 @@ const PanelRouteRouteChildren: PanelRouteRouteChildren = {
   PanelCuentaRoute: PanelCuentaRoute,
   PanelEvaluacionesRoute: PanelEvaluacionesRoute,
   PanelInformesRoute: PanelInformesRoute,
+  PanelPoliticaClasificacionRoute: PanelPoliticaClasificacionRoute,
   PanelReglasRoute: PanelReglasRoute,
   PanelSolicitantesRoute: PanelSolicitantesRoute,
   PanelUsuariosRoute: PanelUsuariosRoute,

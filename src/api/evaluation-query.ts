@@ -1,7 +1,7 @@
 import { ApiRequestError, cleanBaseUrl, createHttpClient } from "@/api/http";
 import { authApi } from "@/api/auth";
 import { endSession } from "@/api/session";
-import { clearTokens, getAccessToken } from "@/api/token-store";
+import { clearTokens, getAccessToken, getRefreshToken } from "@/api/token-store";
 
 /**
  * Cliente de evaluation-query-api (HU13, HU14 y HU15).
@@ -73,6 +73,11 @@ const request = createHttpClient({
   getToken: getAccessToken,
   refreshSession: authApi.refreshTokens,
   onUnauthorized: () => {
+    // La sesión solo se considera terminada si Auth invalida el refresh token.
+    // Un fallo transitorio de Auth o un 401 persistente de Query (por ejemplo,
+    // audiencia/clave de esa API) conserva el refresh token y no expulsa al
+    // usuario del panel.
+    if (getRefreshToken()) return;
     clearTokens();
     endSession("expired");
   },
@@ -88,9 +93,7 @@ export const evaluationQueryApi = {
   /** HU13: explicación persistida y factores aplicados a una evaluación. */
   getExplanation: (idEvaluacion: number) => {
     requirePositiveId(idEvaluacion, "idEvaluacion");
-    return request<EvaluationExplanation>(
-      `/api/v1/evaluaciones/${idEvaluacion}/explicacion`,
-    );
+    return request<EvaluationExplanation>(`/api/v1/evaluaciones/${idEvaluacion}/explicacion`);
   },
 
   /** HU14: recomendaciones generadas durante la evaluación, si existen. */

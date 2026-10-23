@@ -156,6 +156,24 @@ export type Evaluation = {
   detalles: EvaluationDetail[];
 };
 
+export type ClassificationCategory = "BAJO" | "MEDIO" | "ALTO";
+export type ClassificationRange = {
+  idRango: number;
+  categoria: ClassificationCategory;
+  limiteInferior: number;
+  limiteSuperior: number;
+};
+export type ClassificationPolicy = {
+  idPolitica: number;
+  version: number;
+  fechaCreacion: string;
+  fechaPublicacion: string;
+  rangos: ClassificationRange[];
+};
+export type PublishClassificationPolicyInput = {
+  rangos: Array<Pick<ClassificationRange, "categoria" | "limiteInferior" | "limiteSuperior">>;
+};
+
 export type ApiError = {
   errorCode?: string;
   message?: string;
@@ -216,6 +234,14 @@ export const api = {
   // HU7 (backend aún no mergeado a main — ver el comentario en scoreRequestSchema)
   calculateScore: (input: ScoreRequestInput) =>
     request<Evaluation>("/api/v1/evaluaciones", { method: "POST", body: JSON.stringify(input) }),
+  // HU11: consultar y publicar la política de clasificación vigente.
+  getCurrentClassificationPolicy: () =>
+    request<ClassificationPolicy>("/api/v1/politicas-clasificacion/vigente"),
+  publishClassificationPolicy: (input: PublishClassificationPolicyInput) =>
+    request<ClassificationPolicy>("/api/v1/politicas-clasificacion", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 };
 
 export const isApiConfigured = Boolean(API_BASE_URL);

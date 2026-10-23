@@ -76,12 +76,14 @@ function Dashboard() {
             : "Consulta solicitantes, ejecuta evaluaciones y revisa los resultados de riesgo."
         }
         action={
-          <Button asChild>
-            <Link to="/panel/evaluaciones">
-              Nueva evaluación
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+          !admin ? (
+            <Button asChild>
+              <Link to="/panel/evaluaciones">
+                Nueva evaluación
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
       <DemoNotice />
@@ -146,22 +148,24 @@ function Dashboard() {
         className="grid grid-cols-2 gap-3 lg:grid-cols-4"
         aria-label="Indicadores principales"
       >
-        {metrics.map(({ label, value, note, icon: Icon, tone }, index) => (
-          <Panel key={label} className="animate-rise p-4 sm:p-5">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase text-muted-foreground">{label}</p>
-                <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">{value}</p>
-                <p className={`mt-1 text-xs font-semibold text-${tone}`}>{note}</p>
+        {metrics
+          .filter((item) => !admin || item.label !== "Evaluaciones hoy")
+          .map(({ label, value, note, icon: Icon, tone }) => (
+            <Panel key={label} className="animate-rise p-4 sm:p-5">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] uppercase text-muted-foreground">{label}</p>
+                  <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">{value}</p>
+                  <p className={`mt-1 text-xs font-semibold text-${tone}`}>{note}</p>
+                </div>
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-primary">
+                  <Icon className="size-4" />
+                </span>
               </div>
-              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-primary">
-                <Icon className="size-4" />
-              </span>
-            </div>
-          </Panel>
-        ))}
+            </Panel>
+          ))}
       </section>
-      <section className="grid gap-6 lg:grid-cols-5">
+      <section className={`grid gap-6 ${admin ? "lg:grid-cols-2" : "lg:grid-cols-5"}`}>
         <Panel className="p-5 lg:col-span-2">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
             <div>
@@ -196,44 +200,48 @@ function Dashboard() {
             ))}
           </div>
         </Panel>
-        <Panel className="overflow-hidden lg:col-span-3">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border px-5 py-4">
-            <div>
-              <h2 className="font-display text-lg font-bold">Evaluaciones recientes</h2>
-              <p className="text-sm text-muted-foreground">Últimos cálculos del motor.</p>
+        {!admin && (
+          <Panel className="overflow-hidden lg:col-span-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border px-5 py-4">
+              <div>
+                <h2 className="font-display text-lg font-bold">Evaluaciones recientes</h2>
+                <p className="text-sm text-muted-foreground">Últimos cálculos del motor.</p>
+              </div>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/panel/evaluaciones">Ver todas</Link>
+              </Button>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/panel/evaluaciones">Ver todas</Link>
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Solicitante</th>
-                  <th>Score</th>
-                  <th>Nivel</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {evaluations.slice(0, 4).map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="font-mono text-[10px] text-muted-foreground">{item.document}</p>
-                    </td>
-                    <td className="font-mono font-bold">{item.score}</td>
-                    <td>
-                      <StatusBadge tone={item.tone}>{item.level}</StatusBadge>
-                    </td>
-                    <td className="whitespace-nowrap text-muted-foreground">{item.date}</td>
+            <div className="overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Solicitante</th>
+                    <th>Score</th>
+                    <th>Nivel</th>
+                    <th>Fecha</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
+                </thead>
+                <tbody>
+                  {evaluations.slice(0, 4).map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        <p className="font-semibold">{item.name}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {item.document}
+                        </p>
+                      </td>
+                      <td className="font-mono font-bold">{item.score}</td>
+                      <td>
+                        <StatusBadge tone={item.tone}>{item.level}</StatusBadge>
+                      </td>
+                      <td className="whitespace-nowrap text-muted-foreground">{item.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        )}
       </section>
       <Panel className="overflow-hidden">
         <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_minmax(18rem,32rem)]">

@@ -23,6 +23,7 @@ Si `VITE_AUTH_BASE_URL` está vacía, el inicio de sesión utiliza una sesión s
 - Para pruebas desde otro dispositivo, el origen puede ser `http://192.168.1.25:5173` o `http://192.168.1.25:3000`, según la URL real utilizada. Configura el origen exacto en los backends que correspondan.
 - En Security-Module, crea el primer administrador mediante las variables de inicialización que documente ese repositorio (en la configuración actual: `INIT_ADMIN_EMAIL` y `INIT_ADMIN_PASSWORD`). Utiliza una contraseña robusta y no la guardes en el repositorio.
 - No existe registro público: el alta de usuarios la realiza un administrador.
+- Las contraseñas de alta y cambio deben tener entre 12 y 72 caracteres, incluir mayúscula, minúscula, número y al menos un símbolo de `@$!%*?&`; no admiten espacios ni otros símbolos. Auth devuelve los errores de validación por campo y la interfaz los muestra junto al campo correspondiente.
 
 Scoring valida el JWT emitido por Auth y permite `Authorization` en CORS. Por eso `VITE_SCORING_SENDS_TOKEN=true` para el flujo real; Auth y Query también comparten la sesión de usuario.
 
@@ -144,6 +145,8 @@ La interfaz consume actualmente, entre otros, estos endpoints del Motor de Scori
 - `POST /api/v1/reglas-scoring`
 - `PATCH /api/v1/reglas-scoring/{idRegla}`
 - `POST /api/v1/evaluaciones` (HU07)
+- `GET /api/v1/politicas-clasificacion/vigente`
+- `POST /api/v1/politicas-clasificacion` (solo `ADMINISTRADOR_RIESGO`)
 
 Y del Security-Module:
 
@@ -154,6 +157,8 @@ Y del Security-Module:
 - `GET /api/v1/usuarios/{id}`
 
 La interfaz consume el scoring transaccional, el login/sesión de Auth y en Query las rutas de explicación, recomendaciones e historial. Las tablas/listados de reglas, informes y el dashboard aún pueden ser informativos donde los backends no tienen endpoints correspondientes.
+
+La ruta `/panel/politica-clasificacion` consulta la política vigente para ambos roles. Solo `ADMINISTRADOR_RIESGO` puede publicar una política o una nueva versión; los rangos se validan en el frontend y Scoring vuelve a validarlos antes de hacerla vigente. Se deben definir exactamente tres rangos enteros, sin huecos ni solapamientos, que cubran de -100 a 130.
 
 El token de acceso vive en memoria y el refresh token se almacena en `sessionStorage`, según el flujo de autenticación actual.
 
@@ -167,3 +172,4 @@ El token de acceso vive en memoria y el refresh token se almacena en `sessionSto
 | El frontend abre pero las llamadas API fallan | Recuerda que las URLs API deben ser accesibles desde el navegador remoto, no solo desde el contenedor o anfitrión. |
 | El contenedor no escucha en el puerto esperado | Revisa los logs de Docker y que se use el `Dockerfile` del repositorio con `NITRO_PRESET=node-server`. |
 | Algunas vistas no reflejan datos persistentes | Confirma si el backend ofrece el endpoint de consulta correspondiente; algunas vistas siguen siendo demostrativas. |
+| Buscar un solicitante devuelve su ficha pero Query falla | Revisa la disponibilidad y la aceptación del JWT en Query. Un 401 de Query no cierra por sí solo la sesión; solo se cierra cuando Auth confirma que el refresh token ya no es utilizable. |

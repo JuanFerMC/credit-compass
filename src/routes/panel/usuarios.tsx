@@ -33,6 +33,18 @@ const emptyForm = {
   rol: "ANALISTA_CREDITO" as Rol,
 };
 
+function validationFieldErrors(details: string[]): Record<string, string> {
+  return Object.fromEntries(
+    details.flatMap((detail) => {
+      const separator = detail.indexOf(": ");
+      if (separator < 0) return [];
+      const field = detail.slice(0, separator);
+      const formField = field === "idRol" ? "rol" : field;
+      return [[formField, detail.slice(separator + 2)]];
+    }),
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
@@ -138,6 +150,9 @@ function UsersPage() {
       setForm(emptyForm);
       setNotice(`La cuenta de ${created.nombre} se creó con el rol ${ROLE_LABEL[created.rolNombre as Rol] ?? created.rolNombre}.`);
     } catch (err) {
+      if (err instanceof ApiRequestError && err.errorCode === "VALIDATION_ERROR") {
+        setErrors(validationFieldErrors(err.details));
+      }
       setError(
         err instanceof ApiRequestError
           ? err.message
@@ -289,12 +304,13 @@ function UsersPage() {
               disabled={!isAuthApiConfigured || saving}
             />
           </Field>
-          <Field label="Rol" htmlFor="rol">
+          <Field label="Rol" htmlFor="rol" error={errors["rol"]}>
             <select
               id="rol"
               className="form-control"
               value={form.rol}
               onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}
+              {...fieldA11y("rol", errors["rol"])}
               disabled={!isAuthApiConfigured || saving}
             >
               {ROLES.map((rol) => (
@@ -314,7 +330,7 @@ function UsersPage() {
               label="Contraseña inicial"
               htmlFor="password"
               error={errors["password"]}
-              hint="Entre 12 y 72 caracteres. El usuario podrá cambiarla desde Mi cuenta."
+              hint="Entre 12 y 72 caracteres; incluye mayúscula, minúscula, número y un símbolo de @$!%*?&. El usuario podrá cambiarla desde Mi cuenta."
             >
               <input
                 id="password"

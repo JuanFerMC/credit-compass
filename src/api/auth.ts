@@ -15,13 +15,17 @@ const AUTH_BASE_URL = cleanBaseUrl(import.meta.env["VITE_AUTH_BASE_URL"] as stri
 export const isAuthApiConfigured = Boolean(AUTH_BASE_URL);
 export const authApi = createAuthApi(AUTH_BASE_URL);
 
-// Política de contraseña del backend (12 a 72): se valida al crear usuario o
-// cambiar contraseña, NO en el login (usuarios con claves antiguas deben poder
-// entrar).
+// Política de contraseña de Auth: 12-72 caracteres, mayúscula, minúscula,
+// dígito y símbolo permitido. Se valida al crear/cambiar contraseña, NO en el
+// login (usuarios con claves antiguas deben poder entrar).
 export const passwordSchema = z
   .string()
   .min(12, "Usa al menos 12 caracteres")
-  .max(72, "Usa como máximo 72 caracteres");
+  .max(72, "Usa como máximo 72 caracteres")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,72}$/,
+    "Incluye mayúscula, minúscula, número y un símbolo permitido (@$!%*?&); no uses espacios ni otros caracteres",
+  );
 
 export const loginSchema = z.object({
   email: z.string().trim().email("Ingresa un correo válido"),

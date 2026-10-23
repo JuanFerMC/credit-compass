@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
+  ChartNoAxesCombined,
   ChevronRight,
   ClipboardCheck,
   Gauge,
@@ -25,6 +26,11 @@ const navItems = [
   { to: "/panel/solicitantes", label: "Solicitantes", icon: Users },
   { to: "/panel/variables", label: "Variables de riesgo", icon: Settings2 },
   { to: "/panel/reglas", label: "Reglas de scoring", icon: Scale },
+  {
+    to: "/panel/politica-clasificacion",
+    label: "Política de clasificación",
+    icon: ChartNoAxesCombined,
+  },
   { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
   { to: "/panel/usuarios", label: "Gestión de usuarios", icon: UserCog },
