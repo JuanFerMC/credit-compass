@@ -11,7 +11,6 @@ import {
   scoreRequestSchema,
   type Evaluation,
 } from "@/api/client";
-import { evaluationQueryApi, isEvaluationQueryApiConfigured, type EvaluationExplanation, type EvaluationRecommendations } from "@/api/evaluation-query";
 import {
   evaluationQueryApi,
   isEvaluationQueryApiConfigured,
