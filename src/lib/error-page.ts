@@ -1,3 +1,5 @@
+import { buildStaticPageCsp, sha256Base64 } from "./csp";
+
 export function renderErrorPage(): string {
   return `<!doctype html>
 <html lang="es">
@@ -21,10 +23,25 @@ export function renderErrorPage(): string {
       <h1>Esta página no se pudo cargar</h1>
       <p>Ocurrió un error. Puedes intentarlo de nuevo o volver al inicio.</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Intentar de nuevo</button>
+        <a class="primary" href="">Intentar de nuevo</a>
         <a class="secondary" href="/">Ir al inicio</a>
       </div>
     </div>
   </body>
 </html>`;
+}
+
+// Respuesta 500 con su propia CSP: la página es estática (un <style> fijo y
+// ningún script), así que se permite ese <style> por hash y nada más.
+export async function errorPageResponse(): Promise<Response> {
+  const html = renderErrorPage();
+  const style = /<style>([\s\S]*?)<\/style>/.exec(html)?.[1] ?? "";
+  const hash = await sha256Base64(style);
+  return new Response(html, {
+    status: 500,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "content-security-policy": buildStaticPageCsp([hash]),
+    },
+  });
 }

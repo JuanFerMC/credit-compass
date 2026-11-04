@@ -856,3 +856,74 @@ la landing/registro conservan su comportamiento. 26 comprobaciones unitarias
 (15 de sesión + 11 de guard/permisos/redirect). **No probado en un navegador**:
 las redirecciones del lado del cliente (efectos de React) no se ejercitaron;
 requieren prueba manual con el backend real.
+
+-- Claude (chat) -- PR "Seguridad 1/2: CSP con nonce y sin dangerouslySetInnerHTML" --
+Rama: `feat/seguridad-csp-sin-inline-html`. Primer paquete de la petición de
+endurecer el manejo de tokens (CSP, evitar `dangerouslySetInnerHTML`,
+sanitizar HTML externo, no guardar el access token en localStorage, no
+imprimir tokens en logs). Los puntos 3, 4 y 5 van en el paquete siguiente.
+
+Auditoría previa (`main` @ 6452696): el access token ya vive solo en memoria y
+el refresh token en sessionStorage (no en localStorage); no hay cookies. Solo
+existía UN sink de HTML: el script del tema en `__root.tsx`
+(`dangerouslySetInnerHTML`).
+
+Cambios:
+- **CSP** (`src/lib/csp.ts`, puro y testeado; middleware `cspMiddleware` en
+  `src/start.ts`): nonce por petición (16 bytes aleatorios), `script-src 'self'
+  'nonce-…'` SIN `unsafe-inline` ni `unsafe-eval`, `connect-src` solo con el
+  propio origen y los 3 backends (derivados de `VITE_*`), `object-src 'none'`,
+  `base-uri`/`form-action 'self'`, `frame-ancestors 'none'`. El nonce llega al
+  router por el contexto de Start (`getGlobalStartContext()` en
+  `src/router.tsx` → `ssr.nonce`); TanStack lo estampa en sus scripts inline y
+  el cliente lo lee de `<meta property="csp-nonce">`.
+  `CSP_REPORT_ONLY=true` (runtime) la emite como Report-Only.
+- **`dangerouslySetInnerHTML` eliminado**: el script anti-parpadeo del tema pasó
+  a `public/theme-init.js` (archivo estático, referenciado en el `head` de
+  `__root.tsx`). Ya no hay ningún sink de HTML en `src/` (salvo el
+  boilerplate de shadcn `chart.tsx`, que se eliminó en el pase de limpieza).
+- **Página de error de emergencia** (`src/lib/error-page.ts`): se quitó el
+  `onclick` inline (ahora un enlace `href=""` que recarga) y
+  `errorPageResponse()` la sirve con su propia CSP (`default-src 'none'`, su
+  `<style>` permitido por hash sha256). `server.ts` y `start.ts` usan ese helper
+  (antes duplicaban el `new Response(...)` tres veces y sin CSP).
+- `style-src-attr 'unsafe-inline'` es una concesión consciente: la app tiene 2
+  atributos `style=""` (ancho de barras) que el SSR renderiza. Solo cubre
+  atributos: no permite `<style>` inline ni hojas ajenas.
+
+Verificación — en un **Chromium real** (headless, vía `@sparticuz/chromium` +
+`puppeteer-core`; no hay navegador en el entorno, se obtuvo de npm):
+- Línea base medida antes de tocar nada (hidratación OK, sin CSP).
+- Con la CSP: 0 violaciones en `/`, `/iniciar-sesion`, `/crear-cuenta`,
+  `/recuperar-cuenta` y las 6 páginas del panel; la hidratación sigue viva
+  (un submit con correo inválido muestra el error de validación de React) y el
+  tema guardado se aplica al `<html>` al primer pintado.
+- Nonce distinto en cada petición; 0 scripts inline sin nonce; 0 `on*=` inline.
+- **Pruebas ofensivas**: se inyectaron en el navegador un `<script>` inline, un
+  `onclick`, un `<script src>` de un origen ajeno, un `<style>` inline y un
+  `fetch` a un origen no permitido: todos bloqueados (una violación registrada
+  por cada uno). Contra `main` sin CSP los inline SÍ se ejecutan.
+  `eval`/`new Function`/`setTimeout(string)` también bloqueados — probados con
+  una página de laboratorio, porque Puppeteer evalúa por CDP con
+  `allowUnsafeEvalBlockedByCSP` y su `eval` no es representativo (la primera
+  prueba dio un falso "ejecutado" por eso).
+- Página de error: su `<style>` carga por hash (fondo aplicado), 0 violaciones.
+- `bun test`: 28 pasan (17 previos + 11 nuevos en `tests/csp.test.ts`).
+  Prueba de mutación: al añadir `'unsafe-inline'` a `script-src` fallan 2 tests.
+- `tsc` y `eslint` limpios; 12 rutas responden `200` (modo demo y real).
+
+Límites honestos: las Google Fonts están permitidas en la política pero el
+entorno no tiene Internet, así que no se pudo comprobar su carga real; no se
+probó contra backends reales; `script-src 'self'` permite cualquier script de
+nuestro propio origen (correcto mientras nada suba archivos al servidor).
+Versiones: TanStack router-core 1.171.15 — hay regresiones del nonce reportadas
+en ≥1.171.31 (issue TanStack/router#8789) y duplicación de scripts con nonce en
+cabecera (#8550): **re-ejecutar la verificación en navegador al actualizar
+TanStack**.
+
+Nota de proceso: `npx eslint . --fix` reformateó 6 archivos ajenos a este
+paquete (`users.ts`, `auth-shell.tsx`, `index.tsx`, `cuenta.tsx`,
+`solicitantes.tsx`, `usuarios.tsx`) — `main` no está limpio de prettier en
+ellos (preexistente). Se revirtieron para que el diff contenga solo este
+paquete; conviene un PR aparte de "formato" si se quiere dejar `eslint .`
+sin cambios pendientes.
