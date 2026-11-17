@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/api/auth";
 import { canAccess } from "@/api/permissions";
@@ -87,6 +87,16 @@ function Brand() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMobileOpen(false);
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileOpen]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <a
@@ -103,11 +113,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {mobileOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
             <button
+              type="button"
               className="absolute inset-0 bg-overlay"
               aria-label="Cerrar menú"
               onClick={() => setMobileOpen(false)}
             />
-            <aside className="glass relative flex h-full w-[min(19rem,86vw)] flex-col border-r border-border shadow-xl">
+            <aside
+              id="mobile-navigation"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menú de navegación"
+              className="glass relative flex h-full w-[min(19rem,86vw)] flex-col border-r border-border shadow-xl"
+            >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center">
                 <Brand />
                 <Button
@@ -133,6 +150,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="shrink-0 md:hidden"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-navigation"
               >
                 <Menu className="size-5" />
               </Button>
