@@ -173,3 +173,17 @@ El token de acceso vive en memoria y el refresh token se almacena en `sessionSto
 | El contenedor no escucha en el puerto esperado | Revisa los logs de Docker y que se use el `Dockerfile` del repositorio con `NITRO_PRESET=node-server`. |
 | Algunas vistas no reflejan datos persistentes | Confirma si el backend ofrece el endpoint de consulta correspondiente; algunas vistas siguen siendo demostrativas. |
 | Buscar un solicitante devuelve su ficha pero Query falla | Revisa la disponibilidad y la aceptación del JWT en Query. Un 401 de Query no cierra por sí solo la sesión; solo se cierra cuando Auth confirma que el refresh token ya no es utilizable. |
+
+## Content-Security-Policy
+
+El servidor emite una CSP con **nonce por petición** (`src/start.ts`, política en `src/lib/csp.ts`):
+
+- `script-src 'self' 'nonce-…'`: sin `unsafe-inline` ni `unsafe-eval`. Un XSS que inyecte un `<script>`, un `onclick="…"` o use `eval` no se ejecuta.
+- `connect-src`: el propio origen y los backends de `VITE_API_BASE_URL`, `VITE_AUTH_BASE_URL` y `VITE_EVALUATION_QUERY_BASE_URL`. **Se calcula al construir la imagen** (esas URLs se inlinean en el bundle): si cambia un backend, hay que reconstruir.
+- `style-src`: `'self'`, nonce y Google Fonts. `style-src-attr 'unsafe-inline'` solo cubre atributos `style="…"`.
+- `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- La página de error de emergencia es estática: lleva su propia CSP (`default-src 'none'`, su `<style>` permitido por hash).
+
+`CSP_REPORT_ONLY=true` (variable de **entorno en runtime**, no de build) la emite como `Content-Security-Policy-Report-Only`: el navegador registra las violaciones sin bloquear. Útil para desplegarla con red de seguridad la primera vez.
+
+Si agregas un recurso externo (otra fuente, un CDN, un backend nuevo), hay que permitirlo en `src/lib/csp.ts`; de lo contrario el navegador lo bloqueará.

@@ -1,7 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
-import { renderErrorPage } from "./lib/error-page";
+import { errorPageResponse } from "./lib/error-page";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -29,10 +29,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   if (!isH3SwallowedErrorBody(body)) return response;
 
   console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
-  return new Response(renderErrorPage(), {
-    status: 500,
-    headers: { "content-type": "text/html; charset=utf-8" },
-  });
+  return errorPageResponse();
 }
 
 function isH3SwallowedErrorBody(body: string): boolean {
@@ -44,10 +41,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-// Cabeceras de seguridad para todas las respuestas del servidor. No se
-// define Content-Security-Policy a propósito: TanStack Start inyecta scripts
-// inline de hidratación (y __root.tsx uno para el tema), así que una CSP
-// útil requiere nonces — queda como mejora aparte, ver AGENTS.md.
+// Cabeceras de seguridad para todas las respuestas del servidor. La
+// Content-Security-Policy NO va aquí: lleva un nonce por petición que el router
+// necesita al renderizar, así que la emite el middleware de src/start.ts.
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
@@ -76,12 +72,7 @@ export default {
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return withSecurityHeaders(
-        new Response(renderErrorPage(), {
-          status: 500,
-          headers: { "content-type": "text/html; charset=utf-8" },
-        }),
-      );
+      return withSecurityHeaders(await errorPageResponse());
     }
   },
 };

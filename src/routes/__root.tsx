@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -76,11 +75,16 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
+    // Tema guardado antes del primer pintado (archivo estático: ver public/theme-init.js).
+    scripts: [{ src: "/theme-init.js" }],
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Veridica — Motor de scoring crediticio" },
-      { name: "description", content: "Plataforma para evaluar, explicar y gestionar el riesgo crediticio." },
+      {
+        name: "description",
+        content: "Plataforma para evaluar, explicar y gestionar el riesgo crediticio.",
+      },
       { name: "author", content: "Veridica" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -93,7 +97,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -106,18 +113,6 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <head>
-        {/*
-          Evita el "flash" de tema incorrecto: en SSR el <html> no tiene
-          data-theme todavía, así que sin esto el usuario vería un
-          parpadeo del tema claro antes de que el JS de React hidrate y
-          aplique el tema oscuro/daltónico guardado (ver theme-switcher.tsx,
-          que usa la misma clave y los mismos valores permitidos).
-        */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("veridica-theme");if(t==="dark"||t==="colorblind"){document.documentElement.dataset.theme=t;}}catch(e){}})();`,
-          }}
-        />
         <HeadContent />
       </head>
       <body>
