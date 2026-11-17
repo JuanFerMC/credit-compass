@@ -20,6 +20,14 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message:
+            "No renderices HTML sin procesar. Prefiere texto plano; si HTML externo es imprescindible, sanitízalo con una política revisada.",
+        },
+      ],
       "no-restricted-imports": [
         "error",
         {
