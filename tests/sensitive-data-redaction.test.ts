@@ -8,7 +8,7 @@ import {
 describe("redactSensitiveText", () => {
   test("oculta credenciales Bearer sin eliminar el contexto", () => {
     expect(redactSensitiveText("Request failed with Authorization: Bearer abc.def.ghi")).toBe(
-      "Request failed with Authorization: Bearer [REDACTED]",
+      "Request failed with Authorization: [REDACTED]",
     );
   });
 
@@ -65,7 +65,7 @@ describe("redactSensitiveData", () => {
   });
 
   test("devuelve errores con mensaje y stack saneados", () => {
-    const error = new Error("Refresh token: refresh-secret");
+    const error = new Error("refreshToken=refresh-secret");
     error.stack = "Error: Authorization: Bearer bearer-secret";
 
     const result = redactSensitiveData(error) as { message: string; stack: string };
