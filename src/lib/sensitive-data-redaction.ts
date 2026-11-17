@@ -12,7 +12,7 @@ export function redactSensitiveText(value: string): string {
   return value
     .replace(/(\bBearer\s+)[A-Za-z0-9._~+/-]+=*/gi, `$1${REDACTION}`)
     .replace(
-      /(["']?(?:authorization|access[_-]?token|refresh[_-]?token|id[_-]?token|token|password|client[_-]?secret)["']?\s*[:=]\s*["']?)([^"'&\s,;}]+)/gi,
+      /((["']?(?:authorization|access[_-]?token|refresh[_-]?token|id[_-]?token|token|password|client[_-]?secret)["']?\s*[:=]\s*))(["']?)(?:Bearer\s+)?([^"'&\s,;}]+)/gi,
       `$1${REDACTION}`,
     )
     .replace(
