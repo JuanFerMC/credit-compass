@@ -38,8 +38,8 @@ export function AuthShell({
           </Button>
         }
       />
-      <main className="flex flex-1 items-center justify-center px-6 py-12">
-        <Panel className="w-full max-w-sm p-6">
+      <main className="flex flex-1 items-center justify-center px-3 py-6 sm:px-6 sm:py-12">
+        <Panel className="w-full max-w-sm min-w-0 p-4 sm:p-6">
           <div className="mb-5">
             <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-primary">
               {icon}
