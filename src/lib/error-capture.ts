@@ -23,9 +23,7 @@ export function describeError(error: unknown): string {
   for (let depth = 0; depth < CAUSE_DEPTH_LIMIT && current != null; depth++) {
     if (!(current instanceof Error)) {
       const description =
-        typeof current === "string"
-          ? current
-          : JSON.stringify(redactSensitiveData(current)) ?? String(current);
+        typeof current === "string" ? current : safeStringify(redactSensitiveData(current));
       parts.push(redactSensitiveText(description));
       break;
     }
@@ -42,6 +40,14 @@ function describeStatus(error: Error): string {
   const { status, statusCode } = error as { status?: unknown; statusCode?: unknown };
   const value = status ?? statusCode;
   return typeof value === "number" ? ` (status ${value})` : "";
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
 }
 
 function isErrorLike(value: unknown): value is Error {
