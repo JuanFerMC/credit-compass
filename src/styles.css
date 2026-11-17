@@ -140,6 +140,8 @@
   body { min-width: 20rem; background: var(--background); color: var(--foreground); letter-spacing: 0; }
   body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 32%), radial-gradient(circle at 95% 22%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 28%); }
   button, a, input, select, textarea { letter-spacing: 0; }
+  :focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+  .overflow-x-auto { max-width: 100%; overscroll-behavior-inline: contain; }
   ::selection { background: var(--accent-soft); color: var(--foreground); }
 }
 
@@ -184,6 +186,10 @@
 @utility status-inactive { background: var(--muted); color: var(--muted-foreground); }
 @utility score-tile { display: flex; min-height: 10rem; flex-direction: column; align-items: center; justify-content: center; gap: 0.35rem; border-radius: 0.75rem; background: var(--positive-soft); color: var(--positive); padding: 1rem; text-align: center; }
 @utility score-orbit { display: grid; width: 5rem; height: 5rem; flex-shrink: 0; place-items: center; border: 0.55rem solid var(--accent-soft); border-top-color: var(--positive); border-radius: 50%; font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
+
+@media (pointer: coarse) {
+  button, [role="button"], input, select, textarea { min-height: 2.75rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
