@@ -271,14 +271,14 @@ function ApplicantsPage() {
         )}
       </Panel>
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-overlay p-4">
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-overlay p-3 sm:p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="new-title"
-            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-border bg-surface shadow-xl"
+            className="my-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-xl border border-border bg-surface shadow-xl"
           >
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border px-5 py-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-4 sm:px-5">
               <div>
                 <h2 id="new-title" className="font-display text-xl font-bold">
                   Nuevo solicitante
@@ -294,7 +294,7 @@ function ApplicantsPage() {
                 <X className="size-5" />
               </Button>
             </div>
-            <form onSubmit={submit} className="grid gap-5 p-5 sm:grid-cols-2">
+            <form onSubmit={submit} className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
               <Field label="Nombre completo" htmlFor="nombre" error={errors["nombreCompleto"]}>
                 <input
                   id="nombre"
@@ -390,7 +390,7 @@ function ApplicantsPage() {
                   {...fieldA11y("antiguedad", errors["antiguedadLaboral"])}
                 />
               </Field>
-              <div className="flex justify-end gap-2 sm:col-span-2">
+              <div className="flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
                 <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
