@@ -1,5 +1,5 @@
 const SENSITIVE_KEY_PATTERN =
-  /^(?:authorization|access[_-]?token|refresh[_-]?token|id[_-]?token|token|password|client[_-]?secret)$/i;
+  /^(?:authorization|access[\\s_-]?token|refresh[\\s_-]?token|id[\\s_-]?token|token|password|client[_-]?secret)$/i;
 
 const REDACTION = "[REDACTED]";
 
@@ -12,7 +12,7 @@ export function redactSensitiveText(value: string): string {
   return value
     .replace(/(\bBearer\s+)[A-Za-z0-9._~+/-]+=*/gi, `$1${REDACTION}`)
     .replace(
-      /((?:["']?(?:authorization|access[_-]?token|refresh[_-]?token|id[_-]?token|token|password|client[_-]?secret)["']?\s*[:=]\s*))(["']?)(?:Bearer\s+)?([^"'&\s,;}]+)/gi,
+      /((?:["']?(?:authorization|access[\\s_-]?token|refresh[\\s_-]?token|id[\\s_-]?token|token|password|client[_-]?secret)["']?\s*[:=]\s*))(["']?)(?:Bearer\s+)?([^"'&\s,;}]+)/gi,
       `$1$2${REDACTION}`,
     )
     .replace(
