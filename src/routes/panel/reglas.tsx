@@ -181,7 +181,10 @@ function RulesPage() {
           </div>
           <div className="space-y-3 p-4 md:hidden">
             {scoringRules.map((rule) => (
-              <article key={rule.id} className="min-w-0 rounded-xl border border-border bg-card p-4">
+              <article
+                key={rule.id}
+                className="min-w-0 rounded-xl border border-border bg-card p-4"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="min-w-0 break-words font-semibold">{rule.variable}</h3>
                   <StatusDot active={rule.active} />
@@ -189,12 +192,17 @@ function RulesPage() {
                 <dl className="mt-3 grid grid-cols-2 gap-3 border-y border-border py-3 text-sm">
                   <div>
                     <dt className="text-xs text-muted-foreground">Condición</dt>
-                    <dd className="mt-1 break-words font-mono">{rule.operator} {rule.value}</dd>
+                    <dd className="mt-1 break-words font-mono">
+                      {rule.operator} {rule.value}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground">Puntaje</dt>
-                    <dd className={`mt-1 font-semibold ${rule.points >= 0 ? "text-positive" : "text-destructive"}`}>
-                      {rule.points >= 0 ? "+" : ""}{rule.points}
+                    <dd
+                      className={`mt-1 font-semibold ${rule.points >= 0 ? "text-positive" : "text-destructive"}`}
+                    >
+                      {rule.points >= 0 ? "+" : ""}
+                      {rule.points}
                     </dd>
                   </div>
                 </dl>
