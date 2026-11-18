@@ -179,7 +179,38 @@ function RulesPage() {
               Ejemplo académico alineado con la documentación del proyecto.
             </p>
           </div>
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-4 md:hidden">
+            {scoringRules.map((rule) => (
+              <article key={rule.id} className="min-w-0 rounded-xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="min-w-0 break-words font-semibold">{rule.variable}</h3>
+                  <StatusDot active={rule.active} />
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-3 border-y border-border py-3 text-sm">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Condición</dt>
+                    <dd className="mt-1 break-words font-mono">{rule.operator} {rule.value}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Puntaje</dt>
+                    <dd className={`mt-1 font-semibold ${rule.points >= 0 ? "text-positive" : "text-destructive"}`}>
+                      {rule.points >= 0 ? "+" : ""}{rule.points}
+                    </dd>
+                  </div>
+                </dl>
+                <Button
+                  className="mt-3 min-h-11 w-full"
+                  type="button"
+                  variant="outline"
+                  onClick={() => prefillEdit(rule)}
+                >
+                  <Pencil className="size-4" />
+                  Editar regla
+                </Button>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="data-table">
               <thead>
                 <tr>
@@ -282,7 +313,7 @@ function RulesPage() {
                   {...fieldA11y("id-riesgo", createErrors["idRiesgo"])}
                 />
               </Field>
-              <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
                 <Field label="Operador" htmlFor="operator">
                   <select
                     id="operator"
@@ -380,7 +411,7 @@ function RulesPage() {
                   {...fieldA11y("id-regla", editErrors["idRegla"])}
                 />
               </Field>
-              <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
                 <Field label="Operador" htmlFor="edit-operator">
                   <select
                     id="edit-operator"
