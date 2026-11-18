@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Download, FileSpreadsheet, FileText, Plus, Trash2 } from "lucide-react";
 import { api, type ApplicantDetail, ApiRequestError } from "@/api/client";
 import {
@@ -163,7 +163,10 @@ export function ExportReportsDialog({ currentApplicant }: { currentApplicant: Ap
             </Button>
           </form>
 
-          <ul className="max-h-48 space-y-2 overflow-y-auto" aria-label="Solicitantes seleccionados">
+          <ul
+            className="max-h-48 space-y-2 overflow-y-auto"
+            aria-label="Solicitantes seleccionados"
+          >
             {selected.map((applicant) => (
               <li
                 key={applicant.idSolicitante}
@@ -252,7 +255,11 @@ export function ExportReportsDialog({ currentApplicant }: { currentApplicant: Ap
           >
             Cerrar
           </Button>
-          <Button type="button" onClick={() => void exportReports()} disabled={exporting || selected.length === 0}>
+          <Button
+            type="button"
+            onClick={() => void exportReports()}
+            disabled={exporting || selected.length === 0}
+          >
             <Download className="size-4" />
             {exporting ? "Generando…" : "Generar reporte"}
           </Button>
@@ -275,7 +282,7 @@ function FormatOption({
   onSelect: (value: ReportFormat) => void;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   const active = selected === value;
   return (
@@ -290,7 +297,9 @@ function FormatOption({
         onChange={() => onSelect(value)}
         className="accent-primary"
       />
-      <span className="text-primary" aria-hidden="true">{icon}</span>
+      <span className="text-primary" aria-hidden="true">
+        {icon}
+      </span>
       <span className="min-w-0">
         <span className="block font-semibold">{label}</span>
         <span className="block text-xs text-muted-foreground">{description}</span>
