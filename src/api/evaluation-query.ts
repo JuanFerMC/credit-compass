@@ -165,8 +165,8 @@ async function exportReport(
   }
 
   const disposition = response.headers.get("Content-Disposition") ?? "";
-  const encodedFilename = disposition.match(/filename\\*\\s*=\\s*UTF-8''([^;]+)/i)?.[1];
-  const plainFilename = disposition.match(/filename\\s*=\\s*"?([^";]+)"?/i)?.[1];
+  const encodedFilename = disposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i)?.[1];
+  const plainFilename = disposition.match(/filename\s*=\s*"?([^";]+)"?/i)?.[1];
   let filename = format === "pdf" ? "reporte-evaluaciones.pdf" : "reporte-evaluaciones.xlsx";
   if (encodedFilename) {
     try {
@@ -177,7 +177,7 @@ async function exportReport(
   } else if (plainFilename) {
     filename = plainFilename.trim();
   }
-  filename = filename.replace(/[\\r\\n\\\\/]/g, "_");
+  filename = filename.replace(/[\r\n\\/]/g, "_");
 
   return { blob: await response.blob(), filename };
 }
