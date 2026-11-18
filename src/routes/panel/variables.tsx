@@ -147,7 +147,10 @@ function VariablesPage() {
           </div>
           <div className="space-y-3 p-4 md:hidden">
             {riskVariables.map((item) => (
-              <article key={item.id} className="min-w-0 rounded-xl border border-border bg-card p-4">
+              <article
+                key={item.id}
+                className="min-w-0 rounded-xl border border-border bg-card p-4"
+              >
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="break-words font-semibold">{item.name}</h3>
