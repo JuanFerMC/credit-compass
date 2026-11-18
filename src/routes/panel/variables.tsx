@@ -145,7 +145,42 @@ function VariablesPage() {
               El estado se apoya con texto para no depender únicamente del color.
             </p>
           </div>
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-4 md:hidden">
+            {riskVariables.map((item) => (
+              <article
+                key={item.id}
+                className="min-w-0 rounded-xl border border-border bg-card p-4"
+              >
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words font-semibold">{item.name}</h3>
+                    <p className="font-mono text-xs text-muted-foreground">{item.code}</p>
+                  </div>
+                  <StatusDot active={item.active} />
+                </div>
+                <dl className="mt-3 grid gap-2 border-y border-border py-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Tipo</dt>
+                    <dd className="mt-1 font-medium">{item.type}</dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs text-muted-foreground">Descripción</dt>
+                    <dd className="mt-1 break-words text-muted-foreground">{item.description}</dd>
+                  </div>
+                </dl>
+                <Button
+                  className="mt-3 min-h-11 w-full"
+                  type="button"
+                  variant="outline"
+                  onClick={() => prefillStatus(item)}
+                >
+                  <ToggleLeft className="size-4" />
+                  {item.active ? "Desactivar" : "Activar"}
+                </Button>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="data-table">
               <thead>
                 <tr>
@@ -265,7 +300,7 @@ function VariablesPage() {
         )}
         <form
           onSubmit={submitStatus}
-          className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem_auto]"
+          className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem] lg:grid-cols-[minmax(0,1fr)_10rem_auto]"
         >
           <Field label="idRiesgo" htmlFor="status-id" error={statusErrors["idRiesgo"]}>
             <input
