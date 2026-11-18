@@ -345,7 +345,7 @@ function UsersPage() {
             </Field>
           </div>
           <div className="sm:col-span-2">
-            <Button type="submit" disabled={!isAuthApiConfigured || saving}>
+            <Button className="w-full sm:w-auto" type="submit" disabled={!isAuthApiConfigured || saving}>
               {saving ? "Guardando…" : "Crear cuenta"}
             </Button>
           </div>
@@ -422,7 +422,119 @@ function UsersPage() {
         ) : users.length === 0 ? (
           <p className="p-5 text-sm text-muted-foreground">No hay usuarios para mostrar.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-4 md:hidden">
+            {filteredUsers.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                No hay usuarios que coincidan con los filtros seleccionados.
+              </p>
+            ) : filteredUsers.map((user) => (
+              <article key={user.id} className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words font-semibold">{user.nombre}</h3>
+                    <p className="break-all text-sm text-muted-foreground">{user.email}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">ID: #{user.id}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${user.activo ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}
+                  >
+                    {user.activo ? "Activo" : "Inactivo"}
+                  </span>
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-border py-3 text-sm">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Rol</dt>
+                    <dd className="mt-1 break-words font-medium">
+                      {ROLE_LABEL[user.rolNombre as Rol] ?? user.rolNombre}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Creación</dt>
+                    <dd className="mt-1 break-words">{formatDate(user.fechaCreacion)}</dd>
+                  </div>
+                </dl>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Button
+                    className="min-w-0"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void openDetails(user)}
+                  >
+                    <Eye className="size-4" />
+                    Ver ficha
+                  </Button>
+                  <Button
+                    className="min-w-0"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void toggleStatus(user)}
+                  >
+                    {user.activo ? "Desactivar" : "Activar"}
+                  </Button>
+                  <Button
+                    className="col-span-2 min-w-0"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setResetId(user.id);
+                      setNewPassword("");
+                      setResetMessage("");
+                    }}
+                  >
+                    <KeyRound className="size-4" />
+                    Restablecer clave
+                  </Button>
+                </div>
+                {resetId === user.id && (
+                  <form
+                    className="mt-3 space-y-2 rounded-lg border border-border p-3"
+                    onSubmit={submitReset}
+                  >
+                    <label
+                      htmlFor={`new-password-mobile-${user.id}`}
+                      className="block text-xs font-semibold"
+                    >
+                      Nueva contraseña
+                    </label>
+                    <input
+                      id={`new-password-mobile-${user.id}`}
+                      type="password"
+                      autoComplete="new-password"
+                      className="form-control"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength={12}
+                      maxLength={72}
+                      required
+                    />
+                    {resetMessage && (
+                      <p role="alert" className="text-xs text-destructive">
+                        {resetMessage}
+                      </p>
+                    )}
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                      <Button className="w-full sm:w-auto" size="sm" type="submit" disabled={saving}>
+                        Guardar
+                      </Button>
+                      <Button
+                        className="w-full sm:w-auto"
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setResetId(null);
+                          setResetMessage("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
@@ -542,7 +654,7 @@ function UsersPage() {
         )}
       </Panel>
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Ficha del usuario</DialogTitle>
             <DialogDescription>
