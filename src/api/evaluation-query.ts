@@ -1,4 +1,5 @@
 import { ApiRequestError, cleanBaseUrl, createHttpClient } from "@/api/http";
+import { isValidExportApplicantIds } from "@/api/export-validation";
 import { authApi } from "@/api/auth";
 import { endSession } from "@/api/session";
 import { clearTokens, getAccessToken, getRefreshToken } from "@/api/token-store";
@@ -91,12 +92,7 @@ export type ExportedReport = {
 export type ExportReportFormat = "pdf" | "excel";
 
 export function validateExportApplicantIds(ids: number[]): void {
-  if (
-    ids.length === 0 ||
-    ids.length > 50 ||
-    ids.some((id) => !Number.isSafeInteger(id) || id <= 0) ||
-    new Set(ids).size !== ids.length
-  ) {
+  if (!isValidExportApplicantIds(ids)) {
     throw new ApiRequestError(
       "Selecciona entre 1 y 50 solicitantes con identificadores válidos y sin duplicados.",
       400,
@@ -204,16 +200,16 @@ export const evaluationQueryApi = {
   },
 
   /** HU15: historial del solicitante, de la evaluación más reciente a la más antigua. */
-  /** Exporta el historial de uno o varios solicitantes como archivo descargable. */
-  exportReport: (format: ExportReportFormat, solicitanteIds: number[]) =>
-    exportReport(format, solicitanteIds),
-
   getApplicantHistory: (idSolicitante: number) => {
     requirePositiveId(idSolicitante, "idSolicitante");
     return request<ApplicantEvaluationHistoryItem[]>(
       `/api/v1/solicitantes/${idSolicitante}/evaluaciones`,
     );
   },
+
+  /** Exporta el historial de uno o varios solicitantes como archivo descargable. */
+  exportReport: (format: ExportReportFormat, solicitanteIds: number[]) =>
+    exportReport(format, solicitanteIds),
 };
 
 export const isEvaluationQueryApiConfigured = Boolean(BASE_URL);
