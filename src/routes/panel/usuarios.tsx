@@ -422,6 +422,7 @@ function UsersPage() {
         ) : users.length === 0 ? (
           <p className="p-5 text-sm text-muted-foreground">No hay usuarios para mostrar.</p>
         ) : (
+          <>
           <div className="space-y-3 p-4 md:hidden">
             {filteredUsers.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
@@ -651,6 +652,7 @@ function UsersPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Panel>
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
