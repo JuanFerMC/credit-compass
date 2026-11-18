@@ -19,6 +19,7 @@ import {
   type ApplicantEvaluationHistoryItem,
 } from "@/api/evaluation-query";
 import { fieldA11y, zodErrors } from "@/lib/forms";
+import { ExportReportsDialog } from "@/components/shared/export-reports-dialog";
 
 export const Route = createFileRoute("/panel/solicitantes")({
   head: () => ({
@@ -226,7 +227,12 @@ function ApplicantsPage() {
               />
             </div>
             <section className="mt-6 border-t border-border pt-5" aria-live="polite">
-              <h3 className="font-display font-bold">Historial de evaluaciones (Query)</h3>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="font-display font-bold">Historial de evaluaciones (Query)</h3>
+                {isApiConfigured && isEvaluationQueryApiConfigured && (
+                  <ExportReportsDialog currentApplicant={result} />
+                )}
+              </div>
               {historyState === "loading" && <p className="mt-2 text-sm text-muted-foreground">Consultando historial…</p>}
               {historyState === "unconfigured" && <p className="mt-2 text-sm text-muted-foreground">Configura VITE_EVALUATION_QUERY_BASE_URL para consultar el historial.</p>}
               {historyState === "error" && <p className="mt-2 text-sm text-destructive" role="alert">No fue posible consultar el historial de Query.</p>}
