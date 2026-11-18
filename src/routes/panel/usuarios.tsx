@@ -83,9 +83,7 @@ function UsersPage() {
       setUsers(await usersApi.list());
     } catch (err) {
       setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "No fue posible cargar los usuarios.",
+        err instanceof ApiRequestError ? err.message : "No fue posible cargar los usuarios.",
       );
     } finally {
       setLoading(false);
@@ -106,8 +104,7 @@ function UsersPage() {
         String(user.id).includes(term);
       const matchesRole = roleFilter === "TODOS" || user.rolNombre === roleFilter;
       const matchesStatus =
-        statusFilter === "TODOS" ||
-        (statusFilter === "ACTIVOS" ? user.activo : !user.activo);
+        statusFilter === "TODOS" || (statusFilter === "ACTIVOS" ? user.activo : !user.activo);
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, roleFilter, statusFilter]);
@@ -143,21 +140,16 @@ function UsersPage() {
     setSaving(true);
     try {
       const created = await usersApi.create(parsed.data);
-      setUsers((current) => [
-        created,
-        ...current.filter((user) => user.id !== created.id),
-      ]);
+      setUsers((current) => [created, ...current.filter((user) => user.id !== created.id)]);
       setForm(emptyForm);
-      setNotice(`La cuenta de ${created.nombre} se creó con el rol ${ROLE_LABEL[created.rolNombre as Rol] ?? created.rolNombre}.`);
+      setNotice(
+        `La cuenta de ${created.nombre} se creó con el rol ${ROLE_LABEL[created.rolNombre as Rol] ?? created.rolNombre}.`,
+      );
     } catch (err) {
       if (err instanceof ApiRequestError && err.errorCode === "VALIDATION_ERROR") {
         setErrors(validationFieldErrors(err.details));
       }
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "No fue posible crear la cuenta.",
-      );
+      setError(err instanceof ApiRequestError ? err.message : "No fue posible crear la cuenta.");
     } finally {
       setSaving(false);
     }
@@ -165,29 +157,19 @@ function UsersPage() {
 
   async function toggleStatus(user: ManagedUser) {
     const nextState = user.activo ? "desactivar" : "activar";
-    if (
-      !window.confirm(
-        `¿Seguro que deseas ${nextState} la cuenta de ${user.nombre}?`,
-      )
-    ) {
+    if (!window.confirm(`¿Seguro que deseas ${nextState} la cuenta de ${user.nombre}?`)) {
       return;
     }
     setError("");
     setNotice("");
     try {
       const updated = await usersApi.setActive(user.id, !user.activo);
-      setUsers((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
+      setUsers((current) => current.map((item) => (item.id === updated.id ? updated : item)));
       setNotice(
         `La cuenta de ${updated.nombre} ahora está ${updated.activo ? "activa" : "desactivada"}.`,
       );
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "No fue posible cambiar el estado.",
-      );
+      setError(err instanceof ApiRequestError ? err.message : "No fue posible cambiar el estado.");
     }
   }
 
@@ -213,14 +195,10 @@ function UsersPage() {
       await usersApi.resetPassword(resetId, parsed.data.newPassword);
       setNewPassword("");
       setResetId(null);
-      setNotice(
-        "Contraseña actualizada. Comunica la nueva clave al usuario por un canal seguro.",
-      );
+      setNotice("Contraseña actualizada. Comunica la nueva clave al usuario por un canal seguro.");
     } catch (err) {
       setResetMessage(
-        err instanceof ApiRequestError
-          ? err.message
-          : "No fue posible cambiar la contraseña.",
+        err instanceof ApiRequestError ? err.message : "No fue posible cambiar la contraseña.",
       );
     } finally {
       setSaving(false);
@@ -260,10 +238,7 @@ function UsersPage() {
         </p>
       )}
       {notice && (
-        <p
-          role="status"
-          className="rounded-lg border border-positive/30 bg-positive/5 p-3 text-sm"
-        >
+        <p role="status" className="rounded-lg border border-positive/30 bg-positive/5 p-3 text-sm">
           {notice}
         </p>
       )}
@@ -345,7 +320,11 @@ function UsersPage() {
             </Field>
           </div>
           <div className="sm:col-span-2">
-            <Button type="submit" disabled={!isAuthApiConfigured || saving}>
+            <Button
+              className="w-full sm:w-auto"
+              type="submit"
+              disabled={!isAuthApiConfigured || saving}
+            >
               {saving ? "Guardando…" : "Crear cuenta"}
             </Button>
           </div>
@@ -369,7 +348,10 @@ function UsersPage() {
                 <label htmlFor="users-search" className="mb-1.5 block text-sm font-semibold">
                   Buscar usuarios
                 </label>
-                <Search className="pointer-events-none absolute left-3 top-[2.55rem] size-4 text-muted-foreground" aria-hidden="true" />
+                <Search
+                  className="pointer-events-none absolute left-3 top-[2.55rem] size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <input
                   id="users-search"
                   type="search"
@@ -391,7 +373,9 @@ function UsersPage() {
                 >
                   <option value="TODOS">Todos los roles</option>
                   {ROLES.map((rol) => (
-                    <option key={rol} value={rol}>{ROLE_LABEL[rol]}</option>
+                    <option key={rol} value={rol}>
+                      {ROLE_LABEL[rol]}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -422,127 +406,256 @@ function UsersPage() {
         ) : users.length === 0 ? (
           <p className="p-5 text-sm text-muted-foreground">No hay usuarios para mostrar.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Usuario</th>
-                  <th className="px-4 py-3">Rol</th>
-                  <th className="px-4 py-3">Estado</th>
-                  <th className="px-4 py-3">Creación</th>
-                  <th className="px-4 py-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      No hay usuarios que coincidan con los filtros seleccionados.
-                    </td>
-                  </tr>
-                ) : filteredUsers.map((user) => (
-                  <tr key={user.id} className="align-top">
-                    <td className="px-4 py-4">
-                      <p className="font-semibold">{user.nombre}</p>
-                      <p className="text-muted-foreground">{user.email}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      {user.rolNombre === "ADMINISTRADOR_RIESGO"
-                        ? "Administrador de riesgo"
-                        : user.rolNombre === "ANALISTA_CREDITO"
-                          ? "Analista de crédito"
-                          : user.rolNombre}
-                    </td>
-                    <td className="px-4 py-4">
+          <>
+            <div className="space-y-3 p-4 md:hidden">
+              {filteredUsers.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  No hay usuarios que coincidan con los filtros seleccionados.
+                </p>
+              ) : (
+                filteredUsers.map((user) => (
+                  <article
+                    key={user.id}
+                    className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm"
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="break-words font-semibold">{user.nombre}</h3>
+                        <p className="break-all text-sm text-muted-foreground">{user.email}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">ID: #{user.id}</p>
+                      </div>
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${user.activo ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${user.activo ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}
                       >
                         {user.activo ? "Activo" : "Inactivo"}
                       </span>
-                    </td>
-                    <td className="px-4 py-4">{formatDate(user.fechaCreacion)}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => void openDetails(user)}
-                        >
-                          <Eye className="size-4" />
-                          Ver ficha
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => void toggleStatus(user)}
-                        >
-                          {user.activo ? "Desactivar" : "Activar"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setResetId(user.id);
-                            setNewPassword("");
-                            setResetMessage("");
-                          }}
-                        >
-                          <KeyRound className="size-4" />
-                          Restablecer clave
-                        </Button>
+                    </div>
+                    <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-border py-3 text-sm">
+                      <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Rol</dt>
+                        <dd className="mt-1 break-words font-medium">
+                          {ROLE_LABEL[user.rolNombre as Rol] ?? user.rolNombre}
+                        </dd>
                       </div>
-                      {resetId === user.id && (
-                        <form
-                          className="mt-3 space-y-2 rounded-lg border border-border p-3"
-                          onSubmit={submitReset}
+                      <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Creación</dt>
+                        <dd className="mt-1 break-words">{formatDate(user.fechaCreacion)}</dd>
+                      </div>
+                    </dl>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <Button
+                        className="min-w-0"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void openDetails(user)}
+                      >
+                        <Eye className="size-4" />
+                        Ver ficha
+                      </Button>
+                      <Button
+                        className="min-w-0"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void toggleStatus(user)}
+                      >
+                        {user.activo ? "Desactivar" : "Activar"}
+                      </Button>
+                      <Button
+                        className="col-span-2 min-w-0"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setResetId(user.id);
+                          setNewPassword("");
+                          setResetMessage("");
+                        }}
+                      >
+                        <KeyRound className="size-4" />
+                        Restablecer clave
+                      </Button>
+                    </div>
+                    {resetId === user.id && (
+                      <form
+                        className="mt-3 space-y-2 rounded-lg border border-border p-3"
+                        onSubmit={submitReset}
+                      >
+                        <label
+                          htmlFor={`new-password-mobile-${user.id}`}
+                          className="block text-xs font-semibold"
                         >
-                          <label
-                            htmlFor={`new-password-${user.id}`}
-                            className="block text-xs font-semibold"
+                          Nueva contraseña
+                        </label>
+                        <input
+                          id={`new-password-mobile-${user.id}`}
+                          type="password"
+                          autoComplete="new-password"
+                          className="form-control"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          minLength={12}
+                          maxLength={72}
+                          required
+                        />
+                        {resetMessage && (
+                          <p role="alert" className="text-xs text-destructive">
+                            {resetMessage}
+                          </p>
+                        )}
+                        <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                          <Button
+                            className="w-full sm:w-auto"
+                            size="sm"
+                            type="submit"
+                            disabled={saving}
                           >
-                            Nueva contraseña
-                          </label>
-                          <input
-                            id={`new-password-${user.id}`}
-                            type="password"
-                            autoComplete="new-password"
-                            className="form-control"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            minLength={12}
-                            maxLength={72}
-                            required
-                          />
-                          {resetMessage && (
-                            <p role="alert" className="text-xs text-destructive">
-                              {resetMessage}
-                            </p>
-                          )}
-                          <div className="flex gap-2">
-                            <Button size="sm" type="submit" disabled={saving}>
-                              Guardar
+                            Guardar
+                          </Button>
+                          <Button
+                            className="w-full sm:w-auto"
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              setResetId(null);
+                              setResetMessage("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </article>
+                ))
+              )}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Usuario</th>
+                    <th className="px-4 py-3">Rol</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3">Creación</th>
+                    <th className="px-4 py-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-sm text-muted-foreground"
+                      >
+                        No hay usuarios que coincidan con los filtros seleccionados.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <tr key={user.id} className="align-top">
+                        <td className="px-4 py-4">
+                          <p className="font-semibold">{user.nombre}</p>
+                          <p className="text-muted-foreground">{user.email}</p>
+                        </td>
+                        <td className="px-4 py-4">
+                          {user.rolNombre === "ADMINISTRADOR_RIESGO"
+                            ? "Administrador de riesgo"
+                            : user.rolNombre === "ANALISTA_CREDITO"
+                              ? "Analista de crédito"
+                              : user.rolNombre}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${user.activo ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}
+                          >
+                            {user.activo ? "Activo" : "Inactivo"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">{formatDate(user.fechaCreacion)}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => void openDetails(user)}
+                            >
+                              <Eye className="size-4" />
+                              Ver ficha
                             </Button>
                             <Button
                               size="sm"
-                              type="button"
-                              variant="ghost"
-                              onClick={() => setResetId(null)}
+                              variant="outline"
+                              onClick={() => void toggleStatus(user)}
                             >
-                              Cancelar
+                              {user.activo ? "Desactivar" : "Activar"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setResetId(user.id);
+                                setNewPassword("");
+                                setResetMessage("");
+                              }}
+                            >
+                              <KeyRound className="size-4" />
+                              Restablecer clave
                             </Button>
                           </div>
-                        </form>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          {resetId === user.id && (
+                            <form
+                              className="mt-3 space-y-2 rounded-lg border border-border p-3"
+                              onSubmit={submitReset}
+                            >
+                              <label
+                                htmlFor={`new-password-${user.id}`}
+                                className="block text-xs font-semibold"
+                              >
+                                Nueva contraseña
+                              </label>
+                              <input
+                                id={`new-password-${user.id}`}
+                                type="password"
+                                autoComplete="new-password"
+                                className="form-control"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                minLength={12}
+                                maxLength={72}
+                                required
+                              />
+                              {resetMessage && (
+                                <p role="alert" className="text-xs text-destructive">
+                                  {resetMessage}
+                                </p>
+                              )}
+                              <div className="flex gap-2">
+                                <Button size="sm" type="submit" disabled={saving}>
+                                  Guardar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => setResetId(null)}
+                                >
+                                  Cancelar
+                                </Button>
+                              </div>
+                            </form>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Panel>
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Ficha del usuario</DialogTitle>
             <DialogDescription>
@@ -552,7 +665,10 @@ function UsersPage() {
           {detailLoading ? (
             <p className="py-6 text-sm text-muted-foreground">Consultando usuario…</p>
           ) : detailError ? (
-            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            <p
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+            >
               {detailError}
             </p>
           ) : detailUser ? (
