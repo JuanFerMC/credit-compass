@@ -435,16 +435,18 @@ function Data({ label, value }: { label: string; value: string }) {
   );
 }
 function formatCopInput(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return "";
-  const normalized = digits.replace(/^0+(?=\d)/, "");
-  if (normalized.length <= 3) return normalized;
-  const thousands = normalized.slice(-3);
-  const leading = normalized.slice(0, -3);
-  if (leading.length <= 3) return `${leading}.${thousands}`;
-  const millions = leading.slice(0, -3);
-  const remainder = leading.slice(-3);
-  return `${millions}'${remainder}.${thousands}`;
+  let remaining = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  if (!remaining) return "";
+
+  const groups: string[] = [];
+  while (remaining.length > 3) {
+    groups.unshift(remaining.slice(-3));
+    remaining = remaining.slice(0, -3);
+  }
+  groups.unshift(remaining);
+
+  if (groups.length <= 2) return groups.join(".");
+  return `${groups.slice(0, -2).join("'")}'${groups.slice(-2).join(".")}`;
 }
 
 function currency(value: number) {
