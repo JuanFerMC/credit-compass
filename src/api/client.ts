@@ -43,16 +43,24 @@ export const applicantSchema = z.object({
   numeroDocumento: z
     .string()
     .trim()
-    .regex(/^\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
-  ingresosMensuales: z.preprocess((value) => value === "" || value == null
-      ? undefined
-      : typeof value === "string"
-        ? Number(value.replace(/[.'\\s]/g, ""))
-        : value, z.number().min(0, "No puede ser negativo").finite()),
-  deudasMensuales: z.preprocess(parseCopInput, z.number().min(0, "No puede ser negativo").finite()),
-  numeroMoras: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().int("Debe ser un número entero").min(0, "No puede ser negativo").finite()),
+    .regex(/^\\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
+  ingresosMensuales: z.preprocess(
+    parseCopInput,
+    z.number().min(0, "No puede ser negativo").finite(),
+  ),
+  deudasMensuales: z.preprocess(
+    parseCopInput,
+    z.number().min(0, "No puede ser negativo").finite(),
+  ),
+  numeroMoras: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : Number(value)),
+    z.number().int("Debe ser un número entero").min(0, "No puede ser negativo").finite(),
+  ),
   historialCrediticio: z.enum(["BUENO", "REGULAR", "MALO"]),
-  antiguedadLaboral: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().min(0, "No puede ser negativa").finite()),
+  antiguedadLaboral: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : Number(value)),
+    z.number().min(0, "No puede ser negativa").finite(),
+  ),
 });
 
 export const riskVariableSchema = z.object({
