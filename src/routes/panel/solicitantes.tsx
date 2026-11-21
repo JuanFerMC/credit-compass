@@ -19,7 +19,7 @@ import {
   type ApplicantEvaluationHistoryItem,
 } from "@/api/evaluation-query";
 import { fieldA11y, zodErrors } from "@/lib/forms";
-import { ExportReportsDialog } from "@/components/shared/export-reports-dialog";
+import { useRol } from "@/api/use-rol";
 
 export const Route = createFileRoute("/panel/solicitantes")({
   head: () => ({
@@ -52,6 +52,8 @@ const emptyForm: ApplicantInput = {
 };
 
 function ApplicantsPage() {
+  const rol = useRol();
+  const canCreateApplicant = rol === "ANALISTA_CREDITO";
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<ApplicantInput>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -170,10 +172,12 @@ function ApplicantsPage() {
         title="Solicitantes"
         description="Registra la información financiera y consulta perfiles existentes antes de iniciar una evaluación."
         action={
-          <Button onClick={() => setOpen(true)}>
-            <UserPlus className="size-4" />
-            Nuevo solicitante
-          </Button>
+          canCreateApplicant ? (
+            <Button onClick={() => setOpen(true)}>
+              <UserPlus className="size-4" />
+              Nuevo solicitante
+            </Button>
+          ) : undefined
         }
       />
       <DemoNotice />
@@ -229,9 +233,6 @@ function ApplicantsPage() {
             <section className="mt-6 border-t border-border pt-5" aria-live="polite">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-display font-bold">Historial de evaluaciones (Query)</h3>
-                {isApiConfigured && isEvaluationQueryApiConfigured && (
-                  <ExportReportsDialog currentApplicant={result} />
-                )}
               </div>
               {historyState === "loading" && <p className="mt-2 text-sm text-muted-foreground">Consultando historial…</p>}
               {historyState === "unconfigured" && <p className="mt-2 text-sm text-muted-foreground">Configura VITE_EVALUATION_QUERY_BASE_URL para consultar el historial.</p>}
@@ -276,7 +277,7 @@ function ApplicantsPage() {
           </div>
         )}
       </Panel>
-      {open && (
+      {open && canCreateApplicant && (
         <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-overlay p-3 sm:p-4">
           <div
             role="dialog"
