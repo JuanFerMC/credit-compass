@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDownRight, ArrowUpRight, Download, FileBarChart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DemoNotice, PageHeader, Panel, PendingBadge } from "@/components/shared/page";
+import { ArrowDownRight, ArrowUpRight, FileBarChart } from "lucide-react";
+import { isApiConfigured } from "@/api/client";
+import { isEvaluationQueryApiConfigured } from "@/api/evaluation-query";
+import { useRol } from "@/api/use-rol";
+import { ExportReportsDialog } from "@/components/shared/export-reports-dialog";
+import { DemoNotice, PageHeader, Panel } from "@/components/shared/page";
 
 export const Route = createFileRoute("/panel/informes")({
   head: () => ({
@@ -31,6 +34,9 @@ const periods = [
   { month: "Sep", score: 712 },
 ];
 function ReportsPage() {
+  const rol = useRol();
+  const canExportReports = rol === "ANALISTA_CREDITO";
+
   return (
     <>
       <PageHeader
@@ -38,13 +44,9 @@ function ReportsPage() {
         title="Informes"
         description="Monitorea la distribución del riesgo y detecta cambios relevantes para la estrategia de crédito."
         action={
-          <div className="flex items-center gap-2">
-            <PendingBadge />
-            <Button variant="secondary" disabled>
-              <Download className="size-4" />
-              Exportar
-            </Button>
-          </div>
+          canExportReports && isApiConfigured && isEvaluationQueryApiConfigured ? (
+            <ExportReportsDialog />
+          ) : undefined
         }
       />
       <DemoNotice />

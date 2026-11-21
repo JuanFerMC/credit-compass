@@ -32,17 +32,35 @@ export function operadoresPermitidos(tipo: RiskVariableType): readonly OperatorS
   return tipo === "CATEGORICO" ? ["="] : OPERATOR_SYMBOLS;
 }
 
+function parseCopInput(value: unknown): unknown {
+  if (value === "" || value == null) return undefined;
+  if (typeof value === "string") return Number(value.replace(/[.'\\s]/g, ""));
+  return value;
+}
+
 export const applicantSchema = z.object({
   nombreCompleto: z.string().trim().min(3, "Escribe al menos 3 caracteres").max(100),
   numeroDocumento: z
     .string()
     .trim()
     .regex(/^\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
-  ingresosMensuales: z.coerce.number().min(0, "No puede ser negativo"),
-  deudasMensuales: z.coerce.number().min(0, "No puede ser negativo"),
-  numeroMoras: z.coerce.number().int("Debe ser un número entero").min(0, "No puede ser negativo"),
+  ingresosMensuales: z.preprocess(
+    parseCopInput,
+    z.number().min(0, "No puede ser negativo").finite(),
+  ),
+  deudasMensuales: z.preprocess(
+    parseCopInput,
+    z.number().min(0, "No puede ser negativo").finite(),
+  ),
+  numeroMoras: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : Number(value)),
+    z.number().int("Debe ser un número entero").min(0, "No puede ser negativo").finite(),
+  ),
   historialCrediticio: z.enum(["BUENO", "REGULAR", "MALO"]),
-  antiguedadLaboral: z.coerce.number().min(0, "No puede ser negativa"),
+  antiguedadLaboral: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : Number(value)),
+    z.number().min(0, "No puede ser negativa").finite(),
+  ),
 });
 
 export const riskVariableSchema = z.object({
