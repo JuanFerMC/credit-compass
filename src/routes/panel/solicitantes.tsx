@@ -41,21 +41,31 @@ export const Route = createFileRoute("/panel/solicitantes")({
   component: ApplicantsPage,
 });
 
-const emptyForm: ApplicantInput = {
+type ApplicantFormState = Omit<
+  ApplicantInput,
+  "ingresosMensuales" | "deudasMensuales" | "numeroMoras" | "antiguedadLaboral"
+> & {
+  ingresosMensuales: string;
+  deudasMensuales: string;
+  numeroMoras: string;
+  antiguedadLaboral: string;
+};
+
+const emptyForm: ApplicantFormState = {
   nombreCompleto: "",
   numeroDocumento: "",
-  ingresosMensuales: 0,
-  deudasMensuales: 0,
-  numeroMoras: 0,
+  ingresosMensuales: "",
+  deudasMensuales: "",
+  numeroMoras: "",
   historialCrediticio: "BUENO",
-  antiguedadLaboral: 0,
+  antiguedadLaboral: "",
 };
 
 function ApplicantsPage() {
   const rol = useRol();
   const canCreateApplicant = rol === "ANALISTA_CREDITO";
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<ApplicantInput>(emptyForm);
+  const [form, setForm] = useState<ApplicantFormState>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
   const [document, setDocument] = useState("");
@@ -80,7 +90,7 @@ function ApplicantsPage() {
     }
   }
 
-  function update<K extends keyof ApplicantInput>(key: K, value: ApplicantInput[K]) {
+  function update<K extends keyof ApplicantFormState>(key: K, value: ApplicantFormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
@@ -329,10 +339,11 @@ function ApplicantsPage() {
                 <input
                   id="ingresos"
                   className="form-control"
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   value={form.ingresosMensuales}
-                  onChange={(e) => update("ingresosMensuales", Number(e.target.value))}
+                  onChange={(e) => update("ingresosMensuales", formatCopInput(e.target.value))}
                   {...fieldA11y("ingresos", errors["ingresosMensuales"])}
                 />
               </Field>
@@ -340,10 +351,11 @@ function ApplicantsPage() {
                 <input
                   id="deudas"
                   className="form-control"
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   value={form.deudasMensuales}
-                  onChange={(e) => update("deudasMensuales", Number(e.target.value))}
+                  onChange={(e) => update("deudasMensuales", formatCopInput(e.target.value))}
                   {...fieldA11y("deudas", errors["deudasMensuales"])}
                 />
               </Field>
@@ -351,11 +363,11 @@ function ApplicantsPage() {
                 <input
                   id="moras"
                   className="form-control"
-                  type="number"
-                  min="0"
-                  step="1"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   value={form.numeroMoras}
-                  onChange={(e) => update("numeroMoras", Number(e.target.value))}
+                  onChange={(e) => update("numeroMoras", e.target.value.replace(/\D/g, ""))}
                   {...fieldA11y("moras", errors["numeroMoras"])}
                 />
               </Field>
@@ -392,8 +404,9 @@ function ApplicantsPage() {
                   type="number"
                   min="0"
                   step="0.1"
+                  placeholder="0"
                   value={form.antiguedadLaboral}
-                  onChange={(e) => update("antiguedadLaboral", Number(e.target.value))}
+                  onChange={(e) => update("antiguedadLaboral", e.target.value)}
                   {...fieldA11y("antiguedad", errors["antiguedadLaboral"])}
                 />
               </Field>
@@ -421,6 +434,19 @@ function Data({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+function formatCopInput(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  const normalized = digits.replace(/^0+(?=\d)/, "");
+  if (normalized.length <= 3) return normalized;
+  const thousands = normalized.slice(-3);
+  const leading = normalized.slice(0, -3);
+  if (leading.length <= 3) return `${leading}.${thousands}`;
+  const millions = leading.slice(0, -3);
+  const remainder = leading.slice(-3);
+  return `${millions}'${remainder}.${thousands}`;
+}
+
 function currency(value: number) {
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
