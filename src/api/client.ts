@@ -43,7 +43,7 @@ export const applicantSchema = z.object({
   numeroDocumento: z
     .string()
     .trim()
-    .regex(/^\\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
+    .regex(/^\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
   ingresosMensuales: z.preprocess(
     parseCopInput,
     z.number().min(0, "No puede ser negativo").finite(),
