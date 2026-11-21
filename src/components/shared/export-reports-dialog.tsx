@@ -24,7 +24,11 @@ type ReportFormat = ExportReportFormat | "both";
 
 const MAX_APPLICANTS = 50;
 
-export function ExportReportsDialog({ currentApplicant }: { currentApplicant: ApplicantDetail }) {
+export function ExportReportsDialog({
+  currentApplicant,
+}: {
+  currentApplicant?: ApplicantDetail;
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<SelectedApplicant[]>([]);
   const [document, setDocument] = useState("");
@@ -37,7 +41,7 @@ export function ExportReportsDialog({ currentApplicant }: { currentApplicant: Ap
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (nextOpen) {
-      setSelected([toSelectedApplicant(currentApplicant)]);
+      setSelected(currentApplicant ? [toSelectedApplicant(currentApplicant)] : []);
       setDocument("");
       setFormat("pdf");
       setError("");
