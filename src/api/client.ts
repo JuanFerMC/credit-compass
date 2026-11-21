@@ -38,11 +38,11 @@ export const applicantSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{6,15}$/, "Usa entre 6 y 15 dígitos"),
-  ingresosMensuales: z.coerce.number().min(0, "No puede ser negativo"),
-  deudasMensuales: z.coerce.number().min(0, "No puede ser negativo"),
-  numeroMoras: z.coerce.number().int("Debe ser un número entero").min(0, "No puede ser negativo"),
+  ingresosMensuales: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().min(0, "No puede ser negativo").finite()),
+  deudasMensuales: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().min(0, "No puede ser negativo").finite()),
+  numeroMoras: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().int("Debe ser un número entero").min(0, "No puede ser negativo").finite()),
   historialCrediticio: z.enum(["BUENO", "REGULAR", "MALO"]),
-  antiguedadLaboral: z.coerce.number().min(0, "No puede ser negativa"),
+  antiguedadLaboral: z.preprocess((value) => value === "" || value == null ? undefined : Number(value), z.number().min(0, "No puede ser negativa").finite()),
 });
 
 export const riskVariableSchema = z.object({
