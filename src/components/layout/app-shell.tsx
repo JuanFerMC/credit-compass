@@ -1,20 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  BarChart3,
-  ChartNoAxesCombined,
-  ChevronRight,
-  ClipboardCheck,
-  Gauge,
-  History,
-  LogOut,
-  Menu,
-  PieChart,
-  UserCog,
-  Scale,
-  Settings2,
-  Users,
-  X,
-} from "lucide-react";
+import { BarChart3, ChartNoAxesCombined, ChevronRight, ClipboardCheck, Gauge, History, LogOut, Menu, PieChart, ShieldCheck, UserCog, Scale, Settings2, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/api/auth";
@@ -34,6 +19,7 @@ const navItems = [
   { to: "/panel/distribucion-riesgo", label: "Distribución de riesgo", icon: PieChart },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
   { to: "/panel/usuarios", label: "Gestión de usuarios", icon: UserCog },
+  { to: "/panel/roles-usuarios", label: "Roles de usuarios", icon: ShieldCheck },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -59,63 +45,44 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Brand() {
-  return (
-    <Link to="/panel" className="flex items-center gap-2.5 px-5 py-5" aria-label="Veridica, ir al panel general">
-      <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary font-display text-sm font-bold text-primary-foreground">V</span>
-      <span className="leading-tight">
-        <span className="block font-display text-[15px] font-bold">Veridica</span>
-        <span className="block font-mono text-[10px] uppercase text-muted-foreground">Scoring crediticio</span>
-      </span>
-    </Link>
-  );
+  return <Link to="/panel" className="flex items-center gap-2.5 px-5 py-5" aria-label="Veridica, ir al panel general">
+    <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary font-display text-sm font-bold text-primary-foreground">V</span>
+    <span className="leading-tight"><span className="block font-display text-[15px] font-bold">Veridica</span><span className="block font-mono text-[10px] uppercase text-muted-foreground">Scoring crediticio</span></span>
+  </Link>;
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     if (!mobileOpen) return;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setMobileOpen(false);
-    }
+    function closeOnEscape(event: KeyboardEvent) { if (event.key === "Escape") setMobileOpen(false); }
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileOpen]);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <a href="#contenido" className="sr-only z-50 bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar al contenido</a>
-      <div className="relative flex min-h-screen">
-        <aside className="glass sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border md:flex">
-          <Brand /><Navigation />
+  return <div className="min-h-screen bg-background text-foreground">
+    <a href="#contenido" className="sr-only z-50 bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar al contenido</a>
+    <div className="relative flex min-h-screen">
+      <aside className="glass sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border md:flex"><Brand /><Navigation /></aside>
+      {mobileOpen && <div className="fixed inset-0 z-50 md:hidden">
+        <button type="button" className="absolute inset-0 bg-overlay" aria-label="Cerrar menú" onClick={() => setMobileOpen(false)} />
+        <aside id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Menú de navegación" className="glass relative flex h-full w-[min(19rem,86vw)] flex-col border-r border-border shadow-xl">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center"><Brand /><Button variant="ghost" size="icon" className="mr-3" onClick={() => setMobileOpen(false)} aria-label="Cerrar menú"><X className="size-5" /></Button></div>
+          <Navigation onNavigate={() => setMobileOpen(false)} />
         </aside>
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <button type="button" className="absolute inset-0 bg-overlay" aria-label="Cerrar menú" onClick={() => setMobileOpen(false)} />
-            <aside id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Menú de navegación" className="glass relative flex h-full w-[min(19rem,86vw)] flex-col border-r border-border shadow-xl">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center">
-                <Brand />
-                <Button variant="ghost" size="icon" className="mr-3" onClick={() => setMobileOpen(false)} aria-label="Cerrar menú"><X className="size-5" /></Button>
-              </div>
-              <Navigation onNavigate={() => setMobileOpen(false)} />
-            </aside>
+      </div>}
+      <div className="min-w-0 flex-1">
+        <header className="glass sticky top-0 z-30 border-b border-border">
+          <div className="flex min-h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:px-8">
+            <Button variant="ghost" size="icon" className="shrink-0 md:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menú" aria-expanded={mobileOpen} aria-controls="mobile-navigation"><Menu className="size-5" /></Button>
+            <div className="min-w-0 flex-1"><p className="hidden font-mono text-[10px] uppercase text-muted-foreground sm:block">Motor de decisión</p><p className="truncate font-display text-sm font-bold sm:text-base">Riesgo claro. Decisiones trazables.</p></div>
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2"><HeaderAccountActions /><ThemeSwitcher /></div>
           </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <header className="glass sticky top-0 z-30 border-b border-border">
-            <div className="flex min-h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:px-8">
-              <Button variant="ghost" size="icon" className="shrink-0 md:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menú" aria-expanded={mobileOpen} aria-controls="mobile-navigation"><Menu className="size-5" /></Button>
-              <div className="min-w-0 flex-1">
-                <p className="hidden font-mono text-[10px] uppercase text-muted-foreground sm:block">Motor de decisión</p>
-                <p className="truncate font-display text-sm font-bold sm:text-base">Riesgo claro. Decisiones trazables.</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1 sm:gap-2"><HeaderAccountActions /><ThemeSwitcher /></div>
-            </div>
-          </header>
-          <main id="contenido" className="mx-auto w-full max-w-none space-y-6 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">{children}</main>
-        </div>
+        </header>
+        <main id="contenido" className="mx-auto w-full max-w-none space-y-6 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">{children}</main>
       </div>
     </div>
-  );
+  </div>;
 }
 
 function initialsOf(nombre: string) {
@@ -127,20 +94,15 @@ function initialsOf(nombre: string) {
 function HeaderAccountActions() {
   const session = useSession();
   const navigate = useNavigate();
-  async function logout() {
-    await auth.logout();
-    await navigate({ to: "/" });
-  }
+  async function logout() { await auth.logout(); await navigate({ to: "/" }); }
   if (session.status !== "authenticated") return null;
   const { nombre } = session.user;
-  return (
-    <>
-      <Button asChild variant="ghost" size="icon" className="size-9 shrink-0 rounded-full" aria-label="Mi cuenta" title="Mi cuenta">
-        <Link to="/panel/cuenta"><span className="grid size-8 place-items-center rounded-full bg-foreground font-display text-xs font-bold text-background">{initialsOf(nombre)}</span></Link>
-      </Button>
-      <Button variant="ghost" size="sm" className="size-9 shrink-0 px-0 sm:h-9 sm:w-auto sm:px-3" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión">
-        <LogOut className="size-4" /><span className="sr-only sm:not-sr-only sm:ml-2">Cerrar sesión</span>
-      </Button>
-    </>
-  );
+  return <>
+    <Button asChild variant="ghost" size="icon" className="size-9 shrink-0 rounded-full" aria-label="Mi cuenta" title="Mi cuenta">
+      <Link to="/panel/cuenta"><span className="grid size-8 place-items-center rounded-full bg-foreground font-display text-xs font-bold text-background">{initialsOf(nombre)}</span></Link>
+    </Button>
+    <Button variant="ghost" size="sm" className="size-9 shrink-0 px-0 sm:h-9 sm:w-auto sm:px-3" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión">
+      <LogOut className="size-4" /><span className="sr-only sm:not-sr-only sm:ml-2">Cerrar sesión</span>
+    </Button>
+  </>;
 }
