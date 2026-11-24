@@ -1,4 +1,4 @@
-import { ApiRequestError, cleanBaseUrl, createHttpClient } from "@/api/http";
+import { cleanBaseUrl, createHttpClient } from "@/api/http";
 import { authApi } from "@/api/auth";
 import { endSession } from "@/api/session";
 import { clearTokens, getAccessToken, getRefreshToken } from "@/api/token-store";
@@ -19,12 +19,12 @@ export type HistoryItem = {
 };
 
 export type HistoryFilters = {
-  fechaDesde?: string;
-  fechaHasta?: string;
-  numeroDocumento?: string;
-  categoria?: RiskCategory;
-  pagina?: number;
-  tamano?: number;
+  fechaDesde?: string | undefined;
+  fechaHasta?: string | undefined;
+  numeroDocumento?: string | undefined;
+  categoria?: RiskCategory | undefined;
+  pagina?: number | undefined;
+  tamano?: number | undefined;
 };
 
 export type HistoryPage = {
