@@ -11,6 +11,7 @@ const ROUTES_BY_ROLE: Record<Rol, readonly string[]> = {
     "/panel/historial",
     "/panel/informes",
     "/panel/usuarios",
+    "/panel/roles-usuarios",
     "/panel/cuenta",
   ],
   ANALISTA_CREDITO: [
