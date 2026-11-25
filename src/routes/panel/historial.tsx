@@ -105,7 +105,7 @@ function HistoryPageView() {
       )}
 
       <Panel className="p-4 sm:p-6">
-        <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form onSubmit={submit} className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Field label="Desde" htmlFor="history-from">
             <input
               id="history-from"
@@ -162,14 +162,19 @@ function HistoryPageView() {
               <option value="ALTO">Alto</option>
             </select>
           </Field>
-          <div className="flex items-end gap-2">
-            <Button type="submit" disabled={!isSprint3QueryConfigured || loading}>
+          <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 lg:col-span-1">
+            <Button
+              type="submit"
+              className="w-full min-w-0 whitespace-nowrap"
+              disabled={!isSprint3QueryConfigured || loading}
+            >
               <Search className="size-4" />
               Buscar
             </Button>
             <Button
               type="button"
               variant="ghost"
+              className="w-full min-w-0 whitespace-nowrap"
               disabled={loading}
               onClick={() => {
                 setForm(EMPTY);
