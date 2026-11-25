@@ -221,6 +221,7 @@ function EvaluationsPage() {
                     setRecommendations(null);
                     setHistory(null);
                     setError("");
+                    setEvaluationReadWarning("");
                     setQueryError("");
                     setQueryLoading(false);
                   }}
