@@ -1,16 +1,6 @@
 import type { Rol } from "@/api/roles";
 
-/**
- * Matriz de acceso del frontend para las rutas del panel.
- *
- * Administrador: administración del motor y de las cuentas; no consulta ni
- * ejecuta evaluaciones desde el panel.
- * Analista: operación diaria, consulta de la política vigente e informes y
- * gestión de su propia cuenta; no administra usuarios ni configura el modelo.
- *
- * Esta matriz controla la navegación y el guard de rutas. No sustituye los
- * permisos del backend, pero evita que la UI dependa de un permiso por defecto.
- */
+/** Matriz de acceso del frontend para las rutas del panel. */
 const ROUTES_BY_ROLE: Record<Rol, readonly string[]> = {
   ADMINISTRADOR_RIESGO: [
     "/panel",
@@ -18,8 +8,10 @@ const ROUTES_BY_ROLE: Record<Rol, readonly string[]> = {
     "/panel/variables",
     "/panel/reglas",
     "/panel/politica-clasificacion",
+    "/panel/historial",
     "/panel/informes",
     "/panel/usuarios",
+    "/panel/roles-usuarios",
     "/panel/cuenta",
   ],
   ANALISTA_CREDITO: [
@@ -27,20 +19,18 @@ const ROUTES_BY_ROLE: Record<Rol, readonly string[]> = {
     "/panel/solicitantes",
     "/panel/politica-clasificacion",
     "/panel/evaluaciones",
+    "/panel/historial",
+    "/panel/distribucion-riesgo",
     "/panel/informes",
     "/panel/cuenta",
   ],
 };
 
 function normalizePanelPath(pathname: string): string {
-  // TanStack Router puede presentar el índice como /panel o /panel/.
   const normalized = pathname.replace(/\/+$/, "");
   return normalized || "/";
 }
 
 export function canAccess(rol: Rol, pathname: string): boolean {
-  const path = normalizePanelPath(pathname);
-  // Solo se permite una ruta explícitamente asignada al rol. Rutas nuevas
-  // quedan ocultas/bloqueadas hasta decidir su lugar en la matriz.
-  return ROUTES_BY_ROLE[rol].includes(path);
+  return ROUTES_BY_ROLE[rol].includes(normalizePanelPath(pathname));
 }

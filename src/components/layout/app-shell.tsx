@@ -5,8 +5,11 @@ import {
   ChevronRight,
   ClipboardCheck,
   Gauge,
+  History,
   LogOut,
   Menu,
+  PieChart,
+  ShieldCheck,
   UserCog,
   Scale,
   Settings2,
@@ -32,14 +35,18 @@ const navItems = [
     icon: ChartNoAxesCombined,
   },
   { to: "/panel/evaluaciones", label: "Evaluaciones", icon: ClipboardCheck },
+  { to: "/panel/historial", label: "Historial", icon: History },
+  { to: "/panel/distribucion-riesgo", label: "Distribución de riesgo", icon: PieChart },
   { to: "/panel/informes", label: "Informes", icon: BarChart3 },
   { to: "/panel/usuarios", label: "Gestión de usuarios", icon: UserCog },
+  { to: "/panel/roles-usuarios", label: "Roles de usuarios", icon: ShieldCheck },
 ] as const;
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const rol = useRol();
   const visibleItems = navItems.filter(({ to }) => rol !== null && canAccess(rol, to));
+
   return (
     <nav aria-label="Navegación principal" className="mt-2 flex-1 space-y-1 px-3">
       {visibleItems.map(({ to, label, icon: Icon }) => {
