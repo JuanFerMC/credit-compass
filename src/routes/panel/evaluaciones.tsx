@@ -69,6 +69,7 @@ function EvaluationsPage() {
   const [recommendations, setRecommendations] = useState<EvaluationRecommendations | null>(null);
   const [history, setHistory] = useState<ApplicantEvaluationHistoryItem[] | null>(null);
   const [error, setError] = useState("");
+  const [evaluationReadWarning, setEvaluationReadWarning] = useState("");
   const [queryError, setQueryError] = useState("");
   const [loading, setLoading] = useState(false);
   const [queryLoading, setQueryLoading] = useState(false);
@@ -160,13 +161,24 @@ function EvaluationsPage() {
     const requestId = ++queryRequestId.current;
     setQueryLoading(false);
     setError("");
+    setEvaluationReadWarning("");
     setQueryError("");
     setResult(null);
     setExplanation(null);
     setRecommendations(null);
     setHistory(null);
     try {
-      const evaluation = await api.calculateScore(parsed.data);
+      const createdEvaluation = await api.calculateScore(parsed.data);
+      let evaluation = createdEvaluation;
+      try {
+        // Releer el registro persistido permite presentar la trazabilidad devuelta por el GET.
+        evaluation = await api.getEvaluation(createdEvaluation.idEvaluacion);
+      } catch {
+        // El POST ya confirmó el registro; conservar su respuesta si la consulta posterior falla.
+        setEvaluationReadWarning(
+          "No fue posible consultar nuevamente la evaluación. Se muestra el resultado devuelto por el cálculo.",
+        );
+      }
       setResult(evaluation);
       void loadQueryData(evaluation, requestId);
     } catch (requestError) {
@@ -209,6 +221,7 @@ function EvaluationsPage() {
                     setRecommendations(null);
                     setHistory(null);
                     setError("");
+                    setEvaluationReadWarning("");
                     setQueryError("");
                     setQueryLoading(false);
                   }}
@@ -249,6 +262,25 @@ function EvaluationsPage() {
                   <p className="text-sm text-muted-foreground">
                     Fecha: {formatDate(result.fechaEvaluacion)}
                   </p>
+                  <div className="mt-3 rounded-lg border border-border bg-surface/60 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Usuario evaluador
+                    </p>
+                    {result.usuarioEvaluador ? (
+                      <p className="mt-1 break-all font-mono text-xs" title={result.usuarioEvaluador}>
+                        {result.usuarioEvaluador}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        No registrado en el momento de la evaluación.
+                      </p>
+                    )}
+                  </div>
+                  {evaluationReadWarning && (
+                    <p className="mt-3 text-xs text-muted-foreground" role="status">
+                      {evaluationReadWarning}
+                    </p>
+                  )}
                   {result.estado === "PENDIENTE" && (
                     <p className="mt-3 rounded-lg border border-border p-3 text-sm" role="status">
                       La evaluación está pendiente de completar sus recomendaciones. Puedes volver a

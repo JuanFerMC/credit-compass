@@ -143,11 +143,7 @@ export type ScoringRuleDetail = {
   puntaje: number;
 };
 
-// HU07: cálculo de score. El backend expone esto en la rama
-// feature/HU07-calcular-score-crediticio, que todavía NO está mergeada a
-// main (ver AGENTS.md) — hasta que se fusione, calculateScore() devolverá
-// 404 contra un backend real. evaluaciones.tsx ya lo usa a modo de
-// preparación para cuando esté disponible.
+// HU07 y US 5.1.1: cálculo de score y trazabilidad del usuario evaluador.
 export const scoreRequestSchema = z.object({
   numeroDocumento: z
     .string()
@@ -171,6 +167,8 @@ export type Evaluation = {
   categoria?: string | null;
   versionPolitica?: number | null;
   estado?: "COMPLETADA" | "PENDIENTE" | null;
+  /** UUID del claim sub del JWT que ejecutó la evaluación; null en registros anteriores a US 5.1.1. */
+  usuarioEvaluador?: string | null;
   detalles: EvaluationDetail[];
 };
 
@@ -252,6 +250,13 @@ export const api = {
   // HU7 (backend aún no mergeado a main — ver el comentario en scoreRequestSchema)
   calculateScore: (input: ScoreRequestInput) =>
     request<Evaluation>("/api/v1/evaluaciones", { method: "POST", body: JSON.stringify(input) }),
+  /** US 5.1.1: consulta la evaluación persistida, incluida la identidad original del evaluador. */
+  getEvaluation: (idEvaluacion: number) => {
+    if (!Number.isSafeInteger(idEvaluacion) || idEvaluacion <= 0) {
+      throw new ApiRequestError("idEvaluacion debe ser un entero positivo.", 0);
+    }
+    return request<Evaluation>(`/api/v1/evaluaciones/${idEvaluacion}`);
+  },
   // HU11: consultar y publicar la política de clasificación vigente.
   getCurrentClassificationPolicy: () =>
     request<ClassificationPolicy>("/api/v1/politicas-clasificacion/vigente"),
